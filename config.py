@@ -23,7 +23,7 @@ SYSTEM_PROMPT = (
 )
 
 # ─── ALEKS Activities ───────────────────────────────────────────
-# Add or remove activities as needed for your course
+# Add or remove activities as needed for your course 4th semester
 ACTIVITIES = {
     1:  "Activity 1 - Real numbers and the number line",
     2:  "Activity 2 - Order of operations",
