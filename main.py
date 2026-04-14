@@ -52,11 +52,41 @@ def setup_logging():
     logging.basicConfig(level=logging.INFO, handlers=[handler])
 
 
+# ─── Semester Selection ─────────────────────────────────────────
+
+def select_semester() -> int:
+    """Display semester menu and return the chosen semester number."""
+    print("\n\033[1m╔══════════════════════════════════════════════╗\033[0m")
+    print("\033[1m║          SELECT SEMESTER                     ║\033[0m")
+    print("\033[1m╚══════════════════════════════════════════════╝\033[0m\n")
+
+    for num, (label, activities) in sorted(config.SEMESTERS.items()):
+        count = len(activities)
+        print(f"  \033[96m{num}\033[0m │ {label}  \033[90m({count} activities)\033[0m")
+
+    print()
+    raw = input("\033[1mSemester number (1/2/3/4): \033[0m").strip()
+
+    if not raw.isdigit() or int(raw) not in config.SEMESTERS:
+        print("\033[91mInvalid semester. Exiting.\033[0m")
+        sys.exit(1)
+
+    chosen = int(raw)
+
+    # Update the global ACTIVITIES to the chosen semester
+    config.SEMESTER = chosen
+    config.ACTIVITIES = config.SEMESTERS[chosen][1]
+
+    semester_label = config.SEMESTERS[chosen][0]
+    print(f"\n  \033[92m✓ {semester_label}\033[0m\n")
+    return chosen
+
+
 # ─── Activity Selection ─────────────────────────────────────────
 
 def select_activities() -> list[int]:
     """Display activity menu and get user selection."""
-    print("\n\033[1m╔══════════════════════════════════════════════╗\033[0m")
+    print("\033[1m╔══════════════════════════════════════════════╗\033[0m")
     print("\033[1m║          ALEKS ACTIVITIES                    ║\033[0m")
     print("\033[1m╚══════════════════════════════════════════════╝\033[0m\n")
 
@@ -64,7 +94,7 @@ def select_activities() -> list[int]:
         print(f"  \033[96m{num:>2}\033[0m │ {name}")
 
     print()
-    raw = input("\033[1mSelect activities (comma-separated, e.g. 9,10,11): \033[0m").strip()
+    raw = input("\033[1mSelect activities (comma-separated, e.g. 1,2,3): \033[0m").strip()
 
     selected = []
     for part in raw.split(","):
@@ -99,7 +129,10 @@ def main():
         print("\033[91mUsername and password are required.\033[0m")
         sys.exit(1)
 
-    # Step 2: Select activities
+    # Step 2: Select semester
+    select_semester()
+
+    # Step 3: Select activities
     activities = select_activities()
     log.info(f"Selected {len(activities)} activities: {activities}")
 
