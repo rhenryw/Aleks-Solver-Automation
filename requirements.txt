@@ -1,0 +1,3 @@
+# ALEKS AutoSolver dependencies
+anthropic>=0.40.0    # Claude API
+playwright>=1.40.0   # Browser automation
