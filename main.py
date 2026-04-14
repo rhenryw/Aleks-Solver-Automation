@@ -258,10 +258,11 @@ def main():
     if total > 0:
         print(f"  \033[1mSuccess rate:\033[0m      {correct / total * 100:.1f}%")
     print()
-    print(f"  \033[1mAPI calls:\033[0m         {stats['api_calls']}")
+    print(f"  \033[1mOllama calls:\033[0m      {stats['api_calls']}")
     print(f"  \033[1mCache hits:\033[0m        {stats['cache_hits']}")
-    print(f"  \033[1mTokens used:\033[0m       {stats['total_tokens']:,}")
+    print(f"  \033[1mTokens generated:\033[0m  {stats['total_tokens']:,}")
     print(f"  \033[1mCached answers:\033[0m    {stats['cached_answers']}")
+    print(f"  \033[1mModel:\033[0m             {config.OLLAMA_MODEL}")
     print(f"  \033[1mTime elapsed:\033[0m      {elapsed:.0f}s ({elapsed / 60:.1f}min)")
     print()
 

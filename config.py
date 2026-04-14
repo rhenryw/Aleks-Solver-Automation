@@ -6,10 +6,11 @@ config.py — ALEKS AutoSolver configuration.
 ALEKS_URL = "https://www.aleks.com"
 ALEKS_LOGIN_URL = "https://www.aleks.com/login"
 
-# ─── Claude API ─────────────────────────────────────────────────
-CLAUDE_MODEL = "claude-sonnet-4-20250514"
-CLAUDE_MAX_TOKENS = 1024
-CLAUDE_TEMPERATURE = 0.1  # Low = deterministic math answers
+# ─── Ollama (Local AI) ──────────────────────────────────────────
+OLLAMA_BASE_URL = "http://localhost:11434"   # Default Ollama server
+OLLAMA_MODEL = "qwen2.5:7b"                 # Model to use (change to your preferred model)
+OLLAMA_TEMPERATURE = 0.1                     # Low = deterministic math answers
+OLLAMA_NUM_PREDICT = 1024                    # Max tokens to generate
 
 SYSTEM_PROMPT = (
     "You are a precise math solver. You receive a math problem extracted from ALEKS. "

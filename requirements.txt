@@ -1,3 +1,3 @@
 # ALEKS AutoSolver dependencies
-anthropic>=0.40.0    # Claude API
+requests>=2.31.0     # Ollama REST API client
 playwright>=1.40.0   # Browser automation
