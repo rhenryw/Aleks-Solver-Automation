@@ -27,8 +27,9 @@ class Solver:
         if not api_key:
             raise EnvironmentError(
                 "Missing ANTHROPIC_API_KEY. Run:\n"
-                '  set ANTHROPIC_API_KEY=your-key-here   (CMD)\n'
-                '  $env:ANTHROPIC_API_KEY="your-key-here" (PowerShell)'
+                '  export ANTHROPIC_API_KEY="your-key-here"   (Linux/Mac)\n'
+                '  set ANTHROPIC_API_KEY=your-key-here         (CMD)\n'
+                '  $env:ANTHROPIC_API_KEY="your-key-here"      (PowerShell)'
             )
         self.client = Anthropic(api_key=api_key)
         self.tokens_used = 0

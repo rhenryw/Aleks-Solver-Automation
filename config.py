@@ -18,7 +18,13 @@ SYSTEM_PROMPT = (
     "- For fractions: use / (e.g., 3/4)\n"
     "- For multiple choice: just the letter (e.g., B)\n"
     "- For expressions: use standard notation (e.g., 2x + 3)\n"
-    "- For graphing: return coordinates as JSON array\n"
+    "- For graphing questions: return a JSON object with this EXACT format:\n"
+    '  {"type":"graph","asymptotes":[-3.14,0,3.14],"points":[[1.57,1],[-1.57,-1]],"tool":"curve"}\n'
+    "  - 'asymptotes': array of x-values for vertical asymptotes (can be empty [])\n"
+    "  - 'points': array of [x,y] coordinate pairs to plot on the graph\n"
+    "  - 'tool': one of 'curve','line','ray','segment','point'\n"
+    "  - Use decimal approximations rounded to 2 decimal places\n"
+    "  - For trig functions like sec/csc/tan, include 3 consecutive asymptotes and 2 key points\n"
     "No explanations, no steps, no words. ONLY the answer."
 )
 
