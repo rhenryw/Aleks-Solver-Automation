@@ -129,14 +129,7 @@ def main():
         print("\033[91mUsername and password are required.\033[0m")
         sys.exit(1)
 
-    # Step 2: Select semester
-    select_semester()
-
-    # Step 3: Select activities
-    activities = select_activities()
-    log.info(f"Selected {len(activities)} activities: {activities}")
-
-    # Step 3: Initialize modules
+    # Initialize modules
     solver = Solver()
     browser = AleksBrowser()
 
@@ -145,7 +138,7 @@ def main():
     start_time = time.time()
 
     try:
-        # Step 4: Launch browser and login
+        # Step 2: Launch browser and login
         browser.launch()
         log.info("=" * 40)
         log.info("PHASE 1: Authentication")
@@ -156,7 +149,30 @@ def main():
         password = "x" * len(password)
         del password
 
-        # Step 5: Process each activity
+        # Step 3: Select active class
+        log.info("")
+        log.info("=" * 40)
+        log.info("PHASE 1.5: Class Selection")
+        log.info("=" * 40)
+
+        active_classes = browser.get_active_classes()
+
+        if len(active_classes) == 0:
+            log.error("No active classes found on the dashboard!")
+            browser.screenshot("no_classes")
+            sys.exit(1)
+
+        log.info(f"Auto-selecting: {active_classes[0]['name']}")
+        browser.select_class(0, class_name=active_classes[0]['name'])
+
+        # Step 4: Select semester (after login + class selection)
+        select_semester()
+
+        # Step 5: Select activities
+        activities = select_activities()
+        log.info(f"Selected {len(activities)} activities: {activities}")
+
+        # Step 6: Process each activity
         for activity_id in activities:
             activity_name = config.ACTIVITIES[activity_id]
             log.info("")
@@ -182,6 +198,12 @@ def main():
                     log.info(f"No more questions in {activity_name}")
                     break
 
+                # Skip if already answered correctly (green number or Correct banner)
+                if browser.is_already_correct():
+                    log.info(f"── Question {question_num} already correct ✅ — skipping")
+                    browser.click_next()
+                    continue
+
                 # Read question
                 log.info(f"── Question {question_num} ──")
                 question_text = browser.read_question()
@@ -191,33 +213,55 @@ def main():
                     browser.click_next()
                     continue
 
-                # Show truncated question in console
-                preview = question_text[:100].replace("\n", " ")
-                log.info(f"  Q: {preview}...")
-
-                # Solve
                 topic = activity_name.split(" - ")[1] if " - " in activity_name else ""
-                answer = solver.solve(question_text, context=topic)
-                log.info(f"  A: {answer}")
+                wrong_answers = []
+                result = "unknown"
 
-                # Input answer
-                browser.input_answer(answer)
+                # Retry loop: up to 3 attempts per question
+                for attempt in range(1, 4):
+                    if wrong_answers:
+                        retry_context = (
+                            f"Topic: {topic}\n\n"
+                            f"FULL QUESTION:\n{question_text}\n\n"
+                            f"Previously WRONG answers — do NOT repeat: {', '.join(wrong_answers)}\n"
+                            f"Give a DIFFERENT correct answer."
+                        )
+                        answer = solver.solve(
+                            question_text + f"__retry{len(wrong_answers)}",
+                            context=retry_context,
+                        )
+                    else:
+                        answer = solver.solve(question_text, context=topic)
 
-                # Submit
-                browser.submit()
+                    log.info(f"  A (attempt {attempt}): {answer}")
 
-                # Check result
-                result = browser.check_result()
-                status_icon = {"correct": "✅", "incorrect": "❌"}.get(result, "❓")
-                log.info(f"  Result: {status_icon} {result}")
+                    browser.input_answer(answer)
+                    browser.submit()
 
-                # Record
+                    result = browser.check_result()
+                    status_icon = {"correct": "✅", "incorrect": "❌"}.get(result, "❓")
+                    log.info(f"  Result: {status_icon} {result}")
+
+                    if result == "correct":
+                        break
+
+                    if result == "incorrect":
+                        wrong_answers.append(answer)
+                        solver.bust_cache(question_text)
+                        browser.clear_answer()
+                        log.info(f"  Wrong — retrying (attempt {attempt + 1}/3)")
+                        time.sleep(1)
+                    else:
+                        break  # unknown — move on
+
+                # Record final result
                 all_results.append({
                     "activity": activity_name,
                     "question_num": question_num,
                     "question": question_text[:200],
                     "answer": answer,
                     "result": result,
+                    "attempts": len(wrong_answers) + 1,
                     "timestamp": datetime.now().isoformat(),
                 })
 

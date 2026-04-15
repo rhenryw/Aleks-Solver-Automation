@@ -105,30 +105,38 @@ class AleksBrowser:
         self.page.goto(config.ALEKS_LOGIN_URL)
         self.page.wait_for_load_state("networkidle")
 
-        # ALEKS uses various login form selectors — try common ones
-        # These selectors may need updating if ALEKS changes their UI
+        # ALEKS login forms — the page has 3 variants:
+        #   1. Standalone /login page form  (#login_name_alone)
+        #   2. Header dropdown form         (#login_name_full)
+        #   3. Mobile form                  (#login_name_mobile)
+        # The submit "button" is actually a <div class="login_button">.
         username_selectors = [
-            'input[name="login_data"]',
-            'input[name="username"]',
-            'input[name="email"]',
-            'input[type="email"]',
-            '#username',
-            '#login_data',
+            '#login_name_alone',            # Standalone /login page
+            '#login_name_full',             # Header dropdown
+            '#login_name_mobile',           # Mobile layout
+            'input.login_name',             # Class fallback (all variants)
+            'input[name="username"]',       # Generic name attr
+            'input[autocomplete="username"]',
         ]
 
         password_selectors = [
-            'input[name="password"]',
-            'input[type="password"]',
-            '#password',
+            '#login_pass_alone',            # Standalone /login page
+            '#login_pass_full',             # Header dropdown
+            '#login_pass_mobile',           # Mobile layout
+            'input.login_password',         # Class fallback
+            'input[name="password"]',       # Generic name attr
+            'input[type="password"]',       # Type fallback
         ]
 
         submit_selectors = [
-            'button[type="submit"]',
-            'input[type="submit"]',
-            '.login-button',
-            '#sign-in-btn',
-            'button:has-text("Sign In")',
-            'button:has-text("Log In")',
+            '#login_container .login_button',  # Standalone page submit div
+            '.login_form .login_button',       # Any form's submit div
+            'div.login_button',                # Generic div submit
+            'button[type="submit"]',           # Standard button fallback
+            'input[type="submit"]',            # Standard input fallback
+            'button:has-text("Log In")',        # English text
+            'button:has-text("Iniciar sesión")',  # Spanish text
+            'button:has-text("ACCESO")',        # LATAM variant
         ]
 
         # Fill username
@@ -168,15 +176,36 @@ class AleksBrowser:
             raise AutomationError("Could not find password field")
 
         # Submit
+        submitted = False
         for selector in submit_selectors:
             try:
                 btn = self.page.wait_for_selector(selector, timeout=3000)
                 if btn:
                     btn.click()
                     log.info(f"  Login submitted via: {selector}")
+                    submitted = True
                     break
             except Exception:
                 continue
+
+        # Fallback: submit the form directly via JavaScript
+        if not submitted:
+            try:
+                self.page.evaluate("""
+                    () => {
+                        const form = document.querySelector(
+                            '#login_container form.login_form, '
+                            + 'form#login_full, '
+                            + 'form#login_mobile'
+                        );
+                        if (form) form.submit();
+                    }
+                """)
+                log.info("  Login submitted via JS form.submit()")
+            except Exception:
+                # Last resort: press Enter
+                self.page.keyboard.press("Enter")
+                log.info("  Login submitted via Enter key")
 
         # Wait for dashboard
         self.page.wait_for_load_state("networkidle")
@@ -189,62 +218,442 @@ class AleksBrowser:
 
         log.info("Login successful")
 
+    # ─── Class Selection ────────────────────────────────────────────
+
+    def get_active_classes(self) -> list[dict]:
+        """
+        Read the active classes from the 'Mis clases' dashboard.
+        Returns a list of dicts: [{"name": "...", "index": 0}, ...]
+        """
+        self.page.wait_for_load_state("networkidle")
+        time.sleep(3)
+
+        page_title = self.page.title()
+        page_url = self.page.url
+        log.info(f"  Page: {page_title} ({page_url})")
+
+        # ALEKS class cards are NOT standard <a> tags — they are custom
+        # JavaScript-rendered div/span elements with click handlers.
+        # Use page.evaluate to dump ALL visible elements with their tag info.
+        classes = self.page.evaluate(r"""
+            () => {
+                const results = [];
+
+                // Scan ALL elements in document order between
+                // "Clases Activas" and "Clases Inactivas" sections
+                const allElements = Array.from(document.querySelectorAll('*'));
+                let inActiveSection = false;
+
+                for (const el of allElements) {
+                    const fullText = el.textContent.trim();
+
+                    // Check direct text nodes for section headings
+                    const directText = Array.from(el.childNodes)
+                        .filter(n => n.nodeType === 3)
+                        .map(n => n.textContent.trim())
+                        .join(' ');
+
+                    // Start collecting after "Clases Activas"
+                    if (!inActiveSection) {
+                        if (/Clases Activas|Active Classes/i.test(directText) ||
+                            /^(Clases Activas|Active Classes)\s*\(\d+\)$/i.test(fullText)) {
+                            inActiveSection = true;
+                            continue;
+                        }
+                    }
+
+                    // Stop at "Clases Inactivas"
+                    if (inActiveSection) {
+                        if (/Clases Inactivas|Inactive Classes/i.test(directText) ||
+                            /^(Clases Inactivas|Inactive Classes)\s*\(\d+\)$/i.test(fullText)) {
+                            break;
+                        }
+
+                        // Look for ANY clickable element with class-like text
+                        // ALEKS uses divs/spans with onclick, not <a> tags
+                        const ownText = (el.innerText || '').trim();
+                        const tag = el.tagName;
+
+                        // Class names contain course codes + group identifiers
+                        if (ownText && ownText.length > 15 && ownText.length < 200 &&
+                            !/Agregar|Cambiar|detalles|privacidad|términos|Instructor|Institución|Acceso|Progreso|ACTUALES|OCULTAS/i.test(ownText.substring(0, 40))) {
+                            // Only look at "leaf" clickable elements (not huge containers)
+                            const childLinks = el.querySelectorAll('a, [onclick], [role="link"], [role="button"]');
+                            const isLeaf = el.children.length < 5;
+                            const hasClickHandler = el.onclick || el.getAttribute('onclick') || 
+                                                     el.getAttribute('role') === 'link' ||
+                                                     el.getAttribute('role') === 'button' ||
+                                                     el.style.cursor === 'pointer' ||
+                                                     tag === 'A' || tag === 'BUTTON';
+                            
+                            if (isLeaf && (hasClickHandler || tag === 'DIV' || tag === 'SPAN' || tag === 'A')) {
+                                // Check if this looks like a class name (has Group/Grupo or course code)
+                                if (/Group|Grupo|[A-Z]{2}\d{4}/i.test(ownText)) {
+                                    results.push({
+                                        name: ownText.substring(0, 100),
+                                        index: results.length,
+                                        tag: tag,
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (results.length > 0) return results;
+
+                // Debug: dump ALL visible elements between the sections
+                // to help diagnose what the class card element looks like
+                const debug = [];
+                let inSection = false;
+                for (const el of allElements) {
+                    const ft = el.textContent.trim();
+                    const dt = Array.from(el.childNodes)
+                        .filter(n => n.nodeType === 3)
+                        .map(n => n.textContent.trim())
+                        .join(' ');
+
+                    if (!inSection && (/Clases Activas/i.test(dt) || /^Clases Activas\s*\(\d+\)$/i.test(ft))) {
+                        inSection = true; continue;
+                    }
+                    if (inSection && (/Clases Inactivas/i.test(dt) || /^Clases Inactivas\s*\(\d+\)$/i.test(ft))) {
+                        break;
+                    }
+                    if (inSection) {
+                        const it = (el.innerText || '').trim();
+                        if (it && it.length > 5 && it.length < 200) {
+                            debug.push({
+                                tag: el.tagName,
+                                cls: (typeof el.className === 'string' ? el.className : '').substring(0, 40),
+                                text: it.substring(0, 80),
+                                children: el.children.length,
+                            });
+                        }
+                    }
+                }
+                return [{name: '__DEBUG__', items: debug}];
+            }
+        """)
+
+        # Handle debug output
+        if (classes and len(classes) == 1 and
+                isinstance(classes[0], dict) and classes[0].get('name') == '__DEBUG__'):
+            log.warning("  Could not detect class cards. Elements in active section:")
+            for item in classes[0].get('items', [])[:25]:
+                log.warning(f"    <{item['tag']}> cls=\"{item.get('cls','')}\" "
+                            f"children={item['children']} → {item['text'][:50]}")
+            return []
+
+        log.info(f"  Found {len(classes)} active class(es)")
+        for c in classes:
+            log.info(f"    • {c['name']} ({c.get('tag', '?')})")
+
+        return classes
+
+    def select_class(self, _class_index: int = 0, class_name: str = "") -> bool:
+        """
+        Click on an active class to enter it.
+        
+        Args:
+            class_index: Which class to select (0-based) when multiple exist.
+            class_name: The class name text to click (from get_active_classes).
+        
+        Returns True if a class was selected, False otherwise.
+        """
+        log.info("Selecting class...")
+        self.page.wait_for_load_state("networkidle")
+        time.sleep(2)
+
+        # Strategy 1: Click by exact class name text (works for any element type)
+        if class_name:
+            try:
+                # Use a short unique substring to avoid matching containers
+                # The class name from get_active_classes might be multi-line,
+                # so try the first line (the course title)
+                search = class_name.split('\n')[0].strip()
+                if len(search) > 20:
+                    search = search[:50]  # Use a reasonable prefix
+
+                el = self.page.get_by_text(search, exact=False).first
+                if el.count() > 0:
+                    el.click()
+                    log.info(f"  Entered class via text match: {search}")
+                    self.page.wait_for_load_state("networkidle")
+                    time.sleep(3)
+                    return True
+            except Exception as e:
+                log.info(f"  Text match failed: {e}")
+
+        # Strategy 2: Click any visible element containing "Group" or "Grupo"
+        for search_text in ["Group 1", "Grupo 1", "Group", "Grupo"]:
+            try:
+                # Search ALL elements, not just <a> tags
+                el = self.page.get_by_text(search_text, exact=False).first
+                if el.count() > 0:
+                    el.click()
+                    log.info(f"  Entered class via '{search_text}' text match")
+                    self.page.wait_for_load_state("networkidle")
+                    time.sleep(3)
+                    return True
+            except Exception:
+                pass
+
+        # Strategy 3: JS click on any element with course-code pattern
+        clicked = self.page.evaluate(r"""
+            () => {
+                const allElements = Array.from(document.querySelectorAll('*'));
+                for (const el of allElements) {
+                    const text = (el.innerText || '').trim();
+                    // Look for course code patterns like "EM2026" or "Group 153"
+                    if (text && text.length > 10 && text.length < 150 &&
+                        /[A-Z]{2}\d{4}/.test(text) && 
+                        /Group|Grupo/i.test(text) &&
+                        el.children.length < 5) {
+                        el.click();
+                        return text.substring(0, 80);
+                    }
+                }
+                return null;
+            }
+        """)
+
+        if clicked:
+            log.info(f"  Entered class via JS: {clicked}")
+            self.page.wait_for_load_state("networkidle")
+            time.sleep(3)
+            return True
+
+        log.warning("  Could not find any class to select")
+        self.screenshot("class_selection_failed")
+        return False
+
     # ─── Navigation ─────────────────────────────────────────────────
 
     def navigate_to_activity(self, activity_id: int):
         """
-        Navigate to a specific ALEKS activity.
-        
-        Strategy:
-        1. Look for the activity by its text on the page
-        2. Or navigate via the ALEKS assignment/topic list
+        Navigate to a specific ALEKS activity via the Assignments sidebar.
+
+        Flow:
+        1. Click "Assignments" in the left sidebar
+        2. Wait for the assignment list to load
+        3. Find the search/filter input and type the activity name
+        4. Click the matching activity item
         """
         activity_name = config.ACTIVITIES.get(activity_id, "")
         if not activity_name:
             raise AutomationError(f"Unknown activity ID: {activity_id}")
 
+
         log.info(f"Navigating to: {activity_name}")
 
-        # Wait for page to be ready
+        # ── Step 1: Open hamburger menu, then click "Assignments" ────
         self.page.wait_for_load_state("networkidle")
-        time.sleep(2)
+        time.sleep(1)
 
-        # Strategy 1: Click on activity text directly
-        # ALEKS shows topics/activities as clickable items
-        search_texts = [
-            activity_name,
-            activity_name.split(" - ")[1] if " - " in activity_name else activity_name,
+        # Open the sidebar via the hamburger (≡) button
+        hamburger_selectors = [
+            'button[aria-label*="menu" i]',
+            'button[aria-label*="navigation" i]',
+            '[class*="hamburger"]',
+            '[class*="menu-toggle"]',
+            '[class*="nav-toggle"]',
+            'button:has(svg)',           # icon-only button
+            'button.MuiIconButton-root', # Material UI icon button
         ]
-
-        for text in search_texts:
+        for sel in hamburger_selectors:
             try:
-                link = self.page.get_by_text(text, exact=False).first
-                if link:
-                    link.click()
-                    self.page.wait_for_load_state("networkidle")
-                    time.sleep(2)
-                    log.info(f"  Found and clicked: {text}")
-                    return
+                el = self.page.locator(sel).first
+                if el.is_visible():
+                    el.click()
+                    time.sleep(1)
+                    log.info("  Opened hamburger menu")
+                    break
             except Exception:
                 continue
 
-        # Strategy 2: Look for topic/assignment links
-        try:
-            # ALEKS often uses numbered topic links
-            topic_links = self.page.query_selector_all('a[class*="topic"], a[class*="activity"]')
-            for link in topic_links:
-                link_text = link.inner_text()
-                if str(activity_id) in link_text or any(t in link_text for t in search_texts):
-                    link.click()
+        # "Actividades" in Spanish, "Assignments" in English
+        assignments_selectors = [
+            'a:has-text("Actividades")',
+            'li:has-text("Actividades")',
+            'a:has-text("Assignments")',
+            'li:has-text("Assignments")',
+            '[class*="nav"] >> text=Actividades',
+            'text=Actividades',
+            'text=Assignments',
+        ]
+        clicked_sidebar = False
+        for sel in assignments_selectors:
+            try:
+                el = self.page.locator(sel).first
+                if el.is_visible():
+                    el.click()
                     self.page.wait_for_load_state("networkidle")
                     time.sleep(2)
-                    log.info(f"  Found via topic link: {link_text}")
-                    return
+                    log.info("  Clicked 'Actividades' in sidebar")
+                    clicked_sidebar = True
+                    break
+            except Exception:
+                continue
+
+        if not clicked_sidebar:
+            log.warning("  Could not click sidebar 'Actividades' — trying URL fragment")
+            current_url = self.page.url.split("#")[0]
+            self.page.goto(current_url + "#assignmentList")
+            self.page.wait_for_load_state("networkidle")
+            time.sleep(2)
+
+        # If no activities are visible, click "Mostrar próximas actividades"
+        try:
+            toggle = self.page.locator(
+                'text=Mostrar próximas actividades, text=Show upcoming activities'
+            ).first
+            if toggle.is_visible():
+                toggle.click()
+                time.sleep(1)
+                log.info("  Toggled 'Mostrar próximas actividades'")
         except Exception:
             pass
 
+        # ── Step 2: Click the magnifier / search button ─────────────
+        magnifier_selectors = [
+            'button[aria-label*="search" i]',
+            'button[aria-label*="buscar" i]',
+            '[class*="search"] button',
+            '[class*="search-icon"]',
+            'button:has([class*="search"])',
+            'button:has(svg[class*="search" i])',
+            # generic: any small button that contains an svg (icon button) near the list
+            '[class*="assignment"] button:has(svg)',
+            '[class*="list"] button:has(svg)',
+        ]
+        for sel in magnifier_selectors:
+            try:
+                el = self.page.locator(sel).first
+                if el.is_visible():
+                    el.click()
+                    time.sleep(1)
+                    log.info("  Clicked magnifier / search button")
+                    break
+            except Exception:
+                continue
+
+        # ── Step 3: Find the now-visible search input and paste ──────
+        search_selectors = [
+            'input[placeholder*="search" i]',
+            'input[placeholder*="filter" i]',
+            'input[placeholder*="buscar" i]',
+            'input[type="search"]',
+            'input[class*="search"]',
+            'input[class*="filter"]',
+            '[class*="search"] input',
+            '[class*="filter"] input',
+            'input:visible',
+        ]
+        search_input = None
+        for sel in search_selectors:
+            try:
+                el = self.page.locator(sel).first
+                if el.is_visible():
+                    search_input = el
+                    log.info(f"  Found search input via: {sel}")
+                    break
+            except Exception:
+                continue
+
+        if search_input:
+            search_input.click()
+            search_input.fill(str(activity_id))   # type only the number
+            time.sleep(1.5)
+            log.info(f"  Pasted activity number '{activity_id}' into search bar")
+        else:
+            log.warning("  Search input not found after clicking magnifier")
+
+        # ── Step 5: Click the activity link in the results table ────────
+        time.sleep(1)  # let results render
+
+        # Use JS to find the smallest visible element whose text starts with "Activity N"
+        time.sleep(1)
+        rect = self.page.evaluate(f"""
+            () => {{
+                const tag = "Activity {activity_id}";
+                const SKIP = new Set(['HTML','BODY','TABLE','THEAD','TBODY','TR','SCRIPT','STYLE']);
+                let best = null;
+                let bestArea = Infinity;
+                const all = Array.from(document.querySelectorAll('*'));
+                for (const el of all) {{
+                    if (SKIP.has(el.tagName)) continue;
+                    // Use textContent for matching (no layout side effects)
+                    const t = (el.textContent || '').trim();
+                    if (!t.startsWith(tag)) continue;
+                    if (el.offsetWidth === 0 || el.offsetHeight === 0) continue;
+                    const area = el.offsetWidth * el.offsetHeight;
+                    if (area < bestArea) {{
+                        bestArea = area;
+                        best = el;
+                    }}
+                }}
+                if (!best) return null;
+                const r = best.getBoundingClientRect();
+                return {{ x: r.left, y: r.top, w: r.width, h: r.height, tag: best.tagName }};
+            }}
+        """)
+
+        if rect:
+            cx = rect["x"] + rect["w"] / 2
+            cy = rect["y"] + rect["h"] / 2
+            log.info(f"  Found <{rect['tag']}> at ({cx:.0f},{cy:.0f}) — clicking")
+            self.page.mouse.click(cx, cy)
+            time.sleep(2)
+            return
+
         self.screenshot("nav_failed")
-        log.warning(f"Could not auto-navigate to {activity_name}. Navigate manually.")
+        log.warning(f"Could not find activity element. Check screenshots/nav_failed.png")
+
+    # ─── Question Screenshot ────────────────────────────────────────
+
+    def capture_question_screenshot(self, name: str = "question") -> Path | None:
+        """
+        Screenshot ONLY the question body — not the nav, header, or answer inputs.
+        Tries progressively broader selectors until something reasonable is found.
+        Saves to tmp_screenshots/<name>.png.
+        """
+        tmp_dir = Path("tmp_screenshots")
+        tmp_dir.mkdir(exist_ok=True)
+        path = tmp_dir / f"{name}.png"
+
+        # Ordered from most specific to broadest — stop at first visible element
+        # that is large enough to contain a real question (>100px tall)
+        selectors = [
+            '.problem-text',
+            '.question-content',
+            '[class*="problem-body"]',
+            '[class*="question-body"]',
+            '[class*="exercise"]',
+            '[class*="problem"]',
+            '[class*="question"]',
+            'main',
+            '[role="main"]',
+        ]
+        try:
+            for sel in selectors:
+                el = self.page.query_selector(sel)
+                if not el or not el.is_visible():
+                    continue
+                box = el.bounding_box()
+                if box and box["height"] > 80:
+                    el.screenshot(path=str(path))
+                    log.info(f"  Screenshot ({sel}) → {path}")
+                    return path
+
+            # Last resort: clip to the center content area, avoiding top nav bar
+            vp = self.page.viewport_size or {"width": 1366, "height": 768}
+            clip = {"x": 250, "y": 80, "width": vp["width"] - 280, "height": vp["height"] - 100}
+            self.page.screenshot(path=str(path), clip=clip)
+            log.info(f"  Screenshot (center clip) → {path}")
+            return path
+        except Exception as e:
+            log.warning(f"  Screenshot failed: {e}")
+            return None
 
     # ─── Question Reading ───────────────────────────────────────────
 
@@ -276,87 +685,113 @@ class AleksBrowser:
 
         return False
 
+    def is_already_correct(self) -> bool:
+        """
+        Check if the current question is already marked correct.
+
+        ALEKS shows this in two ways:
+          1. A green "Correct" banner on screen
+          2. The current question number bubble is green (has a checkmark ✓)
+        """
+        try:
+            # Fast text check — green "Correct" banner
+            if self.page.query_selector('text="Correct"') or \
+               self.page.query_selector('text="Correcto"'):
+                return True
+
+            # Check if the active question number bubble is green (already answered)
+            result = self.page.evaluate("""
+                () => {
+                    // ALEKS question number bubbles — find the active/selected one
+                    // A correct question number has a green background or a checkmark inside
+                    const bubbles = Array.from(document.querySelectorAll(
+                        '[class*="question"] span, [class*="progress"] span, ' +
+                        '[class*="questionNumber"], [class*="question_number"], ' +
+                        'span[class*="green"], span[class*="correct"], ' +
+                        '[class*="questionNav"] button, [class*="question-nav"] button'
+                    ));
+
+                    for (const el of bubbles) {
+                        const style = window.getComputedStyle(el);
+                        const bg = style.backgroundColor || '';
+                        const text = (el.textContent || '').trim();
+
+                        // Green background = already correct
+                        const isGreen = bg.includes('0, 128') || bg.includes('34, 139') ||
+                                        bg.includes('0, 153') || bg.includes('76, 175') ||
+                                        bg.includes('56, 142') || bg.includes('46, 125');
+
+                        // Must be the current question (has focus / aria-current / active class)
+                        const cls = (el.className || '').toLowerCase();
+                        const isCurrent = cls.includes('active') || cls.includes('current') ||
+                                          cls.includes('selected') ||
+                                          el.getAttribute('aria-current') === 'true' ||
+                                          el.getAttribute('aria-current') === 'page';
+
+                        if (isGreen && isCurrent) return true;
+
+                        // Checkmark symbol inside current bubble
+                        if ((text === '✓' || text.startsWith('✓')) && isCurrent) return true;
+                    }
+                    return false;
+                }
+            """)
+            return bool(result)
+        except Exception:
+            return False
+
     def read_question(self) -> str:
         """
-        Extract the full question text from the current page.
-        
-        ALEKS renders math using MathJax/KaTeX. We extract:
-        1. The plain text question
-        2. Any math expressions (converted to readable format)
-        3. Multiple choice options if present
+        Extract the full ALEKS question as plain text.
+
+        ALEKS renders math using custom ansedimage_* elements.
+        Each one contains a <span class="visually-hidden dont_read"> with
+        the human-readable math text, e.g.:
+            " h = a cosine ( w t − c ) "
+            " w = begin fraction 3 π over 7 end fraction radians over seconds "
+
+        Strategy:
+        1. Clone #algoPrompt (the question container)
+        2. Replace every ansedimage element with its visually-hidden text
+        3. Strip remaining hidden/UI elements
+        4. Return clean plain text
         """
-        parts = []
+        text = self.page.evaluate(r"""
+            () => {
+                // Find the question container — ALEKS uses id="algoPrompt"
+                const container = document.getElementById('algoPrompt') ||
+                                  document.querySelector('.aleks_content_style') ||
+                                  document.querySelector('[class*="problem"]') ||
+                                  document.querySelector('main') ||
+                                  document.body;
 
-        # Extract main question text
-        question_selectors = [
-            '.question-content',
-            '.problem-text',
-            '[class*="question"]',
-            '[class*="problem"]',
-            '#question-area',
-        ]
+                const clone = container.cloneNode(true);
 
-        for selector in question_selectors:
-            try:
-                el = self.page.query_selector(selector)
-                if el:
-                    text = el.inner_text().strip()
-                    if text and len(text) > 10:
-                        parts.append(text)
-                        break
-            except Exception:
-                continue
+                // 1. Replace each ansedimage_* span with its readable hidden text
+                //    The hidden span has class "visually-hidden dont_read" and
+                //    contains the math as plain English: " h = a cosine ( w t − c ) "
+                clone.querySelectorAll('[id^="ansedimage_"]').forEach(el => {
+                    const hidden = el.querySelector('.visually-hidden.dont_read, .visually-hidden');
+                    const readable = hidden ? hidden.textContent.trim() : el.textContent.trim();
+                    const span = document.createElement('span');
+                    span.textContent = ' ' + readable + ' ';
+                    el.replaceWith(span);
+                });
 
-        # If no structured selector works, grab the main content area
-        if not parts:
-            try:
-                # Get visible text from the main content area
-                body_text = self.page.evaluate("""
-                    () => {
-                        const main = document.querySelector('main, [role="main"], .content, #content');
-                        if (main) return main.innerText;
-                        return document.body.innerText.substring(0, 2000);
-                    }
-                """)
-                if body_text:
-                    parts.append(body_text[:1500])
-            except Exception:
-                pass
+                // 2. Remove scripts, styles, canvas, svg, hidden UI elements
+                clone.querySelectorAll(
+                    'script, style, canvas, svg, ' +
+                    'button, input, textarea, select, ' +
+                    '.ansed_root, .ansed_tree, .ansed_canvas, ' +
+                    '[aria-hidden="true"], [class*="toolbar"], [class*="navbar"]'
+                ).forEach(el => el.remove());
 
-        # Extract math expressions
-        try:
-            math_text = self.page.evaluate("""
-                () => {
-                    const maths = document.querySelectorAll(
-                        'math, .MathJax, .katex, [class*="math-expr"]'
-                    );
-                    return Array.from(maths).map(m => m.textContent || m.alt || '').join(' ');
-                }
-            """)
-            if math_text and math_text.strip():
-                parts.append(f"Math: {math_text.strip()}")
-        except Exception:
-            pass
+                // 3. Return clean text
+                return (clone.innerText || clone.textContent || '').trim();
+            }
+        """)
 
-        # Extract multiple choice options
-        try:
-            options = self.page.evaluate("""
-                () => {
-                    const opts = document.querySelectorAll(
-                        '[class*="choice"], [class*="option"], [class*="answer-choice"], label'
-                    );
-                    return Array.from(opts)
-                        .map((o, i) => `${String.fromCharCode(65+i)}) ${o.innerText.trim()}`)
-                        .filter(t => t.length > 4)
-                        .join('\\n');
-                }
-            """)
-            if options:
-                parts.append(f"Options:\n{options}")
-        except Exception:
-            pass
-
-        full_question = "\n".join(parts).strip()
+        full_question = (text or "").strip()
         if not full_question:
             self.screenshot("no_question_found")
             log.warning("Could not extract question text")
@@ -365,61 +800,132 @@ class AleksBrowser:
 
     # ─── Answer Input ───────────────────────────────────────────────
 
+    def _clear_aleks_input(self):
+        """Select all and delete content in the currently focused ALEKS input."""
+        self.page.keyboard.press("Control+a")
+        time.sleep(0.1)
+        self.page.keyboard.press("Delete")
+        time.sleep(0.1)
+        # Second pass — ALEKS sometimes needs Backspace after Delete
+        self.page.keyboard.press("Control+a")
+        self.page.keyboard.press("Backspace")
+        time.sleep(0.1)
+
+    def _type_aleks_answer(self, answer: str):
+        """
+        Type an answer into the currently-focused ALEKS input field.
+
+        ALEKS keyboard shortcuts for math notation:
+          /        → fraction (numerator already typed, / moves to denominator)
+          ^        → exponent (superscript)
+          sqrt(x)  → type as sqrt then ( x )  — ALEKS recognises it
+          *        → multiplication
+          pi       → π
+          inf      → ∞
+          abs(x)   → |x|
+
+        For a plain fraction like 3/4:
+          - type "3", press "/", type "4", press Tab/Right to exit denominator
+        """
+        import re
+
+        # Handle fractions: "3/4" → type numerator, /, denominator, then exit
+        frac_match = re.fullmatch(r'(-?\d+)\s*/\s*(-?\d+)', answer.strip())
+        if frac_match:
+            num, den = frac_match.group(1), frac_match.group(2)
+            self.page.keyboard.type(num, delay=40)
+            self.page.keyboard.press("/")
+            time.sleep(0.15)
+            self.page.keyboard.type(den, delay=40)
+            # Exit the denominator field
+            self.page.keyboard.press("Tab")
+            log.info(f"  Typed fraction {num}/{den}")
+            return
+
+        # For everything else type character by character
+        self.page.keyboard.type(answer, delay=40)
+
     def input_answer(self, answer: str):
         """
         Input the answer into ALEKS.
-        
-        Detects the input type and uses the appropriate method:
-        - Graph JSON: plot points/asymptotes on the canvas
-        - Text field: type the answer
-        - Multiple choice: click the right option
-        - Dropdown: select the value
+
+        Priority order:
+        1. Graph JSON  → plot on canvas
+        2. Multiple choice (single letter) → click radio/button
+        3. ALEKS custom answer input (.answerBoxInput, [id^='answerBox']) → type
+        4. Standard text inputs → type
+        5. MathQuill / contenteditable → type
         """
         answer = answer.strip()
         log.info(f"  Inputting answer: {answer}")
 
-        # Check if this is a graph answer (JSON with graph data)
+        # 1. Graph answer (JSON)
         graph_data = self._parse_graph_answer(answer)
         if graph_data:
             log.info("  Detected GRAPH answer — plotting on canvas")
             self._input_graph_answer(graph_data)
             return
 
-        # Try multiple choice first (single letter A-D)
+        # 2. Multiple choice — single letter A-H
         if len(answer) == 1 and answer.upper() in "ABCDEFGH":
             if self._click_choice(answer.upper()):
                 return
 
-        # Try text input field
-        input_selectors = [
-            'input[type="text"]:visible',
-            'input[class*="answer"]:visible',
-            'input[class*="input"]:visible',
-            'textarea:visible',
-            '[contenteditable="true"]:visible',
-            '.answer-input input',
-            '#answer-input',
+        # 3. ALEKS-specific answer box selectors (highest priority for text)
+        aleks_selectors = [
+            '[id^="answerBox"]',
+            '[class*="answerBox"]',
+            '[id^="answer_box"]',
+            '[class*="answer_box"]',
+            'input.answer',
+            'input[name*="answer"]',
+            'input[id*="answer"]',
         ]
 
-        for selector in input_selectors:
+        for selector in aleks_selectors:
+            try:
+                el = self.page.query_selector(selector)
+                if el and el.is_visible():
+                    el.click()
+                    time.sleep(0.1)
+                    self._clear_aleks_input()
+                    self._type_aleks_answer(answer)
+                    log.info(f"  Typed into ALEKS box: {selector}")
+                    return
+            except Exception:
+                continue
+
+        # 4. Generic text inputs
+        generic_selectors = [
+            'input[type="text"]:visible',
+            'textarea:visible',
+        ]
+
+        for selector in generic_selectors:
             try:
                 el = self.page.wait_for_selector(selector, timeout=3000)
                 if el:
                     el.click()
-                    el.fill("")  # Clear first
-                    el.type(answer, delay=50)  # Type with slight delay
+                    time.sleep(0.1)
+                    el.fill("")
+                    self._clear_aleks_input()
+                    self._type_aleks_answer(answer)
                     log.info(f"  Typed into: {selector}")
                     return
             except Exception:
                 continue
 
-        # Try MathQuill/MathJax input (ALEKS uses these for math entry)
+        # 5. MathQuill / contenteditable
         try:
-            math_input = self.page.query_selector('.mq-editable-field, .mathquill-editable')
-            if math_input:
+            math_input = self.page.query_selector(
+                '.mq-editable-field, .mathquill-editable, [contenteditable="true"]'
+            )
+            if math_input and math_input.is_visible():
                 math_input.click()
-                self.page.keyboard.type(answer, delay=30)
-                log.info("  Typed into MathQuill field")
+                time.sleep(0.1)
+                self._clear_aleks_input()
+                self._type_aleks_answer(answer)
+                log.info("  Typed into math/contenteditable field")
                 return
         except Exception:
             pass
@@ -600,10 +1106,14 @@ class AleksBrowser:
         In the ALEKS palette (see screenshot), tools are icon buttons.
         """
         # Map tool names to possible selectors / icon positions
+        # Spanish names from tutorial: "para volar"=curve, "semi recta"=ray,
+        # "lápiz"=pencil/point, "tijera"=scissors/crop, "goma"=eraser
         tool_selectors = {
             "curve": [
                 'button[title*="curve" i]',
                 'button[aria-label*="curve" i]',
+                'button[title*="parabola" i]',
+                'button[title*="para volar" i]',
                 '[class*="curve-tool"]',
                 '[class*="tool"] button:nth-child(3)',
             ],
@@ -613,18 +1123,44 @@ class AleksBrowser:
                 '[class*="line-tool"]',
                 '[class*="tool"] button:nth-child(2)',
             ],
+            "ray": [
+                'button[title*="ray" i]',
+                'button[aria-label*="ray" i]',
+                'button[title*="semi recta" i]',
+                'button[aria-label*="semi recta" i]',
+                'button[title*="half" i]',
+                '[class*="ray-tool"]',
+                '[class*="tool"] button:nth-child(4)',
+            ],
             "point": [
                 'button[title*="point" i]',
                 'button[aria-label*="point" i]',
+                'button[title*="lápiz" i]',
+                'button[title*="lapiz" i]',
                 '[class*="point-tool"]',
                 '[class*="tool"] button:nth-child(1)',
+            ],
+            "closed_point": [
+                'button[title*="closed" i]',
+                'button[aria-label*="closed" i]',
+                'button[title*="cerrado" i]',
+                'button[title*="filled" i]',
+                '[class*="closed-point"]',
+                'button[title*="point" i]',
+            ],
+            "open_point": [
+                'button[title*="open" i]',
+                'button[aria-label*="open" i]',
+                'button[title*="abierto" i]',
+                'button[title*="hollow" i]',
+                '[class*="open-point"]',
             ],
             "asymptote": [
                 'button[title*="asymptote" i]',
                 'button[title*="dashed" i]',
                 'button[aria-label*="asymptote" i]',
                 '[class*="asymptote-tool"]',
-                '[class*="tool"] button:nth-child(4)',
+                '[class*="tool"] button:nth-child(5)',
             ],
         }
 
@@ -693,69 +1229,206 @@ class AleksBrowser:
     def _input_graph_answer(self, data: dict):
         """
         Plot a graph answer on the ALEKS canvas.
-        
-        Expected data format:
+
+        Supports two formats:
+
+        Simple (single curve/line):
         {
             "type": "graph",
-            "asymptotes": [-3.14, 0, 3.14],   # x-values for vertical asymptotes
-            "points": [[1.57, 1], [-1.57, -1]], # [x, y] pairs to plot
-            "tool": "curve"                     # optional tool type
+            "asymptotes": [-3.14, 0, 3.14],
+            "points": [[1.57, 1], [-1.57, -1]],
+            "tool": "curve"
+        }
+
+        Piecewise (multiple pieces — from video tutorial):
+        {
+            "type": "graph",
+            "piecewise": [
+                {
+                    "tool": "curve",          # parabola piece
+                    "points": [[0,10],[4,-6]],
+                    "crop": [-4, 4],          # x-domain to keep [x_min, x_max]
+                    "endpoints": [            # closed/open dots at boundaries
+                        {"x": -4, "y": 6, "closed": true},
+                        {"x": 4,  "y": -6, "closed": false}
+                    ]
+                },
+                {
+                    "tool": "ray",            # half-line piece
+                    "points": [[4,-6],[5,-9]],
+                    "endpoints": [
+                        {"x": 4, "y": -6, "closed": true}
+                    ]
+                }
+            ]
         }
         """
-        # Step 1: Find the graph canvas
         canvas = self._get_graph_canvas()
         if not canvas:
             log.error("  Could not find graph canvas on page")
             self.screenshot("graph_no_canvas")
             return
 
-        # Step 2: Calibrate the grid (find coordinate → pixel mapping)
         cal = self._calibrate_grid(canvas)
 
-        # Step 3: Plot asymptotes (vertical dashed lines)
+        # ── Piecewise path ───────────────────────────────────────────
+        if "piecewise" in data:
+            log.info(f"  Piecewise graph: {len(data['piecewise'])} pieces")
+            for i, piece in enumerate(data["piecewise"]):
+                tool = piece.get("tool", "curve")
+                points = piece.get("points", [])
+                crop = piece.get("crop")       # [x_min, x_max] or None
+                endpoints = piece.get("endpoints", [])
+
+                log.info(f"  Piece {i+1}: tool={tool}, {len(points)} points")
+
+                # Select the drawing tool
+                self._select_graph_tool(tool)
+                time.sleep(0.3)
+
+                # Plot the key points for this piece
+                for pt in points:
+                    px, py = self._coord_to_pixel(pt[0], pt[1], cal)
+                    px = max(canvas["x"] + 5, min(px, canvas["x"] + canvas["width"] - 5))
+                    py = max(canvas["y"] + 5, min(py, canvas["y"] + canvas["height"] - 5))
+                    self.page.mouse.click(px, py)
+                    log.info(f"    Plotted ({pt[0]}, {pt[1]}) → ({px:.0f}, {py:.0f})")
+                    time.sleep(0.4)
+
+                # Crop the curve to the domain if specified
+                if crop and len(crop) == 2:
+                    self._crop_piece(crop[0], crop[1], cal, canvas)
+
+                # Mark open/closed endpoints
+                for ep in endpoints:
+                    self._mark_endpoint(ep["x"], ep["y"], ep.get("closed", True), cal, canvas)
+
+            self._click_graph_icon()
+            log.info("  Piecewise graph complete")
+            return
+
+        # ── Simple path (asymptotes + points) ───────────────────────
         asymptotes = data.get("asymptotes", [])
         if asymptotes:
-            log.info(f"  Plotting {len(asymptotes)} asymptotes: {asymptotes}")
+            log.info(f"  Plotting {len(asymptotes)} asymptotes")
             for x_val in asymptotes:
-                # Click at top and bottom of the asymptote line
                 px_top = self._coord_to_pixel(x_val, cal["y_max"] * 0.9, cal)
                 px_bot = self._coord_to_pixel(x_val, cal["y_min"] * 0.9, cal)
-
-                # Click first point
                 self.page.mouse.click(px_top[0], px_top[1])
                 time.sleep(0.3)
-                # Click second point to draw the line
                 self.page.mouse.click(px_bot[0], px_bot[1])
                 time.sleep(0.3)
+                log.info(f"    Asymptote x={x_val}")
 
-                log.info(f"    Asymptote x={x_val} → "
-                         f"({px_top[0]:.0f},{px_top[1]:.0f}) to ({px_bot[0]:.0f},{px_bot[1]:.0f})")
-
-        # Step 4: Plot points
         points = data.get("points", [])
         if points:
-            log.info(f"  Plotting {len(points)} points: {points}")
-
-            # If there's a specific tool to select, do it first
             tool = data.get("tool", "curve")
             self._select_graph_tool(tool)
-
             for pt in points:
                 if len(pt) >= 2:
                     px, py = self._coord_to_pixel(pt[0], pt[1], cal)
-
-                    # Clamp to canvas bounds
                     px = max(canvas["x"] + 5, min(px, canvas["x"] + canvas["width"] - 5))
                     py = max(canvas["y"] + 5, min(py, canvas["y"] + canvas["height"] - 5))
-
                     self.page.mouse.click(px, py)
-                    log.info(f"    Point ({pt[0]}, {pt[1]}) → pixel ({px:.0f}, {py:.0f})")
+                    log.info(f"    Point ({pt[0]}, {pt[1]}) → ({px:.0f}, {py:.0f})")
                     time.sleep(0.4)
 
-        # Step 5: Click the graph icon to finalize (if required)
         self._click_graph_icon()
-
         log.info("  Graph plotting complete")
+
+    def _crop_piece(self, x_min: float, x_max: float, cal: dict, canvas: dict):
+        """
+        Use the ALEKS crop tool to cut a curve between x_min and x_max,
+        then erase the parts outside the domain.
+
+        Flow (from video tutorial):
+        1. Select crop tool
+        2. Click cut point at x_min (on the curve)
+        3. Click cut point at x_max (on the curve)
+        4. Select eraser tool and remove the unwanted segments
+        """
+        log.info(f"  Cropping piece to domain [{x_min}, {x_max}]")
+
+        # Select crop tool (called "tijera" / scissors in Spanish ALEKS)
+        crop_selectors = [
+            'button[title*="tijera" i]',
+            'button[aria-label*="tijera" i]',
+            'button[title*="crop" i]',
+            'button[aria-label*="crop" i]',
+            'button[title*="recortar" i]',
+            'button[title*="scissors" i]',
+            '[class*="crop-tool"]',
+            '[class*="scissors"]',
+            '[class*="tool"] button:nth-child(5)',
+        ]
+        for sel in crop_selectors:
+            try:
+                btn = self.page.locator(sel).first
+                if btn.is_visible():
+                    btn.click()
+                    time.sleep(0.5)
+                    log.info("    Crop tool selected")
+                    break
+            except Exception:
+                continue
+
+        # Click the two cut points (y=0 is a safe mid-curve guess;
+        # ALEKS snaps to the nearest curve automatically)
+        for x_cut in [x_min, x_max]:
+            px, py = self._coord_to_pixel(x_cut, 0, cal)
+            px = max(canvas["x"] + 5, min(px, canvas["x"] + canvas["width"] - 5))
+            py = max(canvas["y"] + 5, min(py, canvas["y"] + canvas["height"] - 5))
+            self.page.mouse.click(px, py)
+            log.info(f"    Cut at x={x_cut} → ({px:.0f}, {py:.0f})")
+            time.sleep(0.5)
+
+        # Select eraser and remove segments outside [x_min, x_max]
+        eraser_selectors = [
+            'button[title*="eras" i]',
+            'button[aria-label*="eras" i]',
+            'button[title*="goma" i]',
+            '[class*="eraser"]',
+            '[class*="erase-tool"]',
+        ]
+        for sel in eraser_selectors:
+            try:
+                btn = self.page.locator(sel).first
+                if btn.is_visible():
+                    btn.click()
+                    time.sleep(0.5)
+                    log.info("    Eraser tool selected")
+                    break
+            except Exception:
+                continue
+
+        # Click slightly outside both ends to erase those segments
+        for x_erase in [x_min - abs(x_max - x_min) * 0.3,
+                         x_max + abs(x_max - x_min) * 0.3]:
+            px, py = self._coord_to_pixel(x_erase, 0, cal)
+            px = max(canvas["x"] + 5, min(px, canvas["x"] + canvas["width"] - 5))
+            py = max(canvas["y"] + 5, min(py, canvas["y"] + canvas["height"] - 5))
+            self.page.mouse.click(px, py)
+            log.info(f"    Erased segment at x={x_erase:.2f}")
+            time.sleep(0.4)
+
+    def _mark_endpoint(self, x: float, y: float, closed: bool, cal: dict, canvas: dict):
+        """
+        Place a closed (filled) or open (hollow) endpoint dot on the graph.
+        Closed = endpoint IS included (≤ or ≥).
+        Open   = endpoint is NOT included (< or >).
+        """
+        point_type = "closed" if closed else "open"
+        log.info(f"  Marking {point_type} endpoint at ({x}, {y})")
+
+        # Select closed_point or open_point tool (bolita cerrada / bolita abierta)
+        self._select_graph_tool("closed_point" if closed else "open_point")
+
+        px, py = self._coord_to_pixel(x, y, cal)
+        px = max(canvas["x"] + 5, min(px, canvas["x"] + canvas["width"] - 5))
+        py = max(canvas["y"] + 5, min(py, canvas["y"] + canvas["height"] - 5))
+        self.page.mouse.click(px, py)
+        log.info(f"    {point_type.capitalize()} dot at ({x}, {y}) → ({px:.0f}, {py:.0f})")
+        time.sleep(0.4)
 
     def _click_choice(self, letter: str) -> bool:
         """Click a multiple choice option by letter (A, B, C, D...)."""
@@ -795,6 +1468,8 @@ class AleksBrowser:
     def submit(self):
         """Click the submit/check/next button."""
         submit_selectors = [
+            'button:has-text("Entregar actividad")',
+            'button:has-text("Entregar")',
             'button:has-text("Check")',
             'button:has-text("Submit")',
             'button:has-text("Next")',
@@ -818,52 +1493,123 @@ class AleksBrowser:
             except Exception:
                 continue
 
-        # Fallback: press Enter
-        log.info("  No submit button found, pressing Enter")
-        self.page.keyboard.press("Enter")
-        time.sleep(2)
+        log.warning("  No submit button found")
+
+    def check_result(self) -> str:
+        """
+        Check if the submitted answer was correct or incorrect.
+
+        ALEKS signals correct by turning the question number green.
+        We detect this via:
+          1. A green-colored question number element
+          2. CSS classes that contain 'correct' / 'wrong' / 'incorrect'
+          3. A checkmark icon appearing next to the question number
+        """
+        time.sleep(1.5)  # Give ALEKS time to evaluate and update the UI
+
+        # Fast path: ALEKS shows explicit "Correct" / "Incorrect" text in a banner
+        try:
+            if self.page.query_selector('text="Correct"') or \
+               self.page.query_selector('text="Correcto"'):
+                return "correct"
+            if self.page.query_selector('text="Incorrect"') or \
+               self.page.query_selector('text="Incorrecto"'):
+                return "incorrect"
+        except Exception:
+            pass
+
+        try:
+            result = self.page.evaluate("""
+                () => {
+                    // 1. Green question-number indicator
+                    //    ALEKS wraps the current question number in a styled element.
+                    //    When correct it gets a green background or green text color.
+                    const allEls = Array.from(document.querySelectorAll('*'));
+
+                    for (const el of allEls) {
+                        const style = window.getComputedStyle(el);
+                        const bg = style.backgroundColor || '';
+                        const color = style.color || '';
+                        const cls = (el.className || '').toLowerCase();
+                        const id  = (el.id || '').toLowerCase();
+
+                        // Green background or text = correct
+                        if (bg.includes('0, 128') || bg.includes('34, 139') ||
+                            bg.includes('0, 153') || bg.includes('76, 175') ||
+                            color.includes('0, 128') || color.includes('0, 153')) {
+                            return 'correct';
+                        }
+
+                        // Red background or text = incorrect
+                        if (bg.includes('255, 0') || bg.includes('220, 53') ||
+                            bg.includes('255, 59') || bg.includes('198, 40') ||
+                            color.includes('255, 0') || color.includes('220, 53')) {
+                            return 'incorrect';
+                        }
+
+                        // CSS class names
+                        if (cls.includes('correct') || cls.includes('success') ||
+                            id.includes('correct') || id.includes('success')) {
+                            return 'correct';
+                        }
+                        if (cls.includes('incorrect') || cls.includes('wrong') ||
+                            cls.includes('error') || id.includes('wrong')) {
+                            return 'incorrect';
+                        }
+                    }
+                    return 'unknown';
+                }
+            """)
+            if result in ("correct", "incorrect"):
+                return result
+        except Exception:
+            pass
+
+        return "unknown"
 
     def click_next(self):
-        """Click 'Next' or 'Continue' to advance to the next question."""
-        next_selectors = [
-            'button:has-text("Next")',
-            'button:has-text("Continue")',
-            'button:has-text("I am ready")',
-            'a:has-text("Next")',
-            '.next-button',
-            '#next-btn',
-        ]
+        """
+        Click the Next / Siguiente button to advance to the next question.
 
-        for selector in next_selectors:
+        After a correct answer ALEKS shows a "Siguiente" (or "Next") button
+        to move to the next problem. We wait for it to appear then click it.
+        """
+        # Use JS to find any button/link whose visible text matches continue/next labels
+        clicked = self.page.evaluate("""
+            () => {
+                const labels = [
+                    'continue', 'continuar', 'siguiente', 'next', 'next question'
+                ];
+                const els = Array.from(document.querySelectorAll('button, a'));
+                for (const el of els) {
+                    const t = (el.textContent || '').trim().toLowerCase();
+                    if (labels.includes(t) && el.offsetParent !== null) {
+                        el.click();
+                        return t;
+                    }
+                }
+                return null;
+            }
+        """)
+
+        if clicked:
+            log.info(f"  Clicked next button: '{clicked}'")
+            time.sleep(2)
+            return
+
+        # Playwright fallback for each label
+        for text in ["Continue", "Continuar", "Siguiente", "Next"]:
             try:
-                btn = self.page.wait_for_selector(selector, timeout=3000)
-                if btn and btn.is_visible():
+                btn = self.page.get_by_role("button", name=text, exact=False)
+                if btn.is_visible():
                     btn.click()
-                    self.page.wait_for_load_state("networkidle")
+                    log.info(f"  Clicked next via role: {text}")
                     time.sleep(2)
                     return
             except Exception:
                 continue
 
-    def check_result(self) -> str:
-        """Check if the answer was correct after submission."""
-        try:
-            # Look for success/error indicators
-            success = self.page.query_selector(
-                '[class*="correct"], [class*="success"], .feedback-correct'
-            )
-            if success:
-                return "correct"
-
-            wrong = self.page.query_selector(
-                '[class*="incorrect"], [class*="wrong"], [class*="error"], .feedback-incorrect'
-            )
-            if wrong:
-                return "incorrect"
-        except Exception:
-            pass
-
-        return "unknown"
+        log.warning("  No 'Next' button found")
 
 
 class AutomationError(Exception):

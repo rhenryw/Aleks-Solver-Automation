@@ -3,31 +3,104 @@ config.py — ALEKS AutoSolver configuration.
 """
 
 # ─── ALEKS Credentials ─────────────────────────────────────────
-ALEKS_URL = "https://www.aleks.com"
-ALEKS_LOGIN_URL = "https://www.aleks.com/login"
+ALEKS_URL = "https://latam.aleks.com"
+ALEKS_LOGIN_URL = "https://latam.aleks.com/login"
 
 # ─── Ollama (Local AI) ──────────────────────────────────────────
-OLLAMA_BASE_URL = "http://localhost:11434"   # Default Ollama server
-OLLAMA_MODEL = "qwen2.5:7b"                 # Model to use (change to your preferred model)
-OLLAMA_TEMPERATURE = 0.1                     # Low = deterministic math answers
-OLLAMA_NUM_PREDICT = 1024                    # Max tokens to generate
+OLLAMA_BASE_URL = "http://localhost:11434"
+OLLAMA_MODEL = "mightykatun/qwen2.5-math:7b"  # Math-specialized solver
+OLLAMA_VISION_MODEL = "llava:latest"           # Vision model for reading screenshots
+
+# Model generation parameters — tuned for precise math answers
+OLLAMA_OPTIONS = {
+    "temperature":    0.1,    # Fully deterministic — math has one right answer
+    "top_p":          0.9,
+    "top_k":          20,     # Restrict sampling to top-20 tokens only
+    "repeat_penalty": 1.1,    # Avoid repetitive output
+    "num_predict":    512,     # Short answers only — no explanations needed
+    "num_ctx":        4096,    # Enough context for long questions
+}
+
+# Legacy aliases (used in a few places)
+OLLAMA_TEMPERATURE = 0.1
+OLLAMA_NUM_PREDICT = 512
 
 SYSTEM_PROMPT = (
-    "You are a precise math solver. You receive a math problem extracted from ALEKS. "
-    "Return ONLY the final answer in the exact format ALEKS expects:\n"
-    "- For numerical answers: just the number (e.g., 3.14)\n"
-    "- For fractions: use / (e.g., 3/4)\n"
-    "- For multiple choice: just the letter (e.g., B)\n"
-    "- For expressions: use standard notation (e.g., 2x + 3)\n"
-    "- For graphing questions: return a JSON object with this EXACT format:\n"
-    '  {"type":"graph","asymptotes":[-3.14,0,3.14],"points":[[1.57,1],[-1.57,-1]],"tool":"curve"}\n'
-    "  - 'asymptotes': array of x-values for vertical asymptotes (can be empty [])\n"
-    "  - 'points': array of [x,y] coordinate pairs to plot on the graph\n"
-    "  - 'tool': one of 'curve','line','ray','segment','point'\n"
-    "  - Use decimal approximations rounded to 2 decimal places\n"
-    "  - For trig functions like sec/csc/tan, include 3 consecutive asymptotes and 2 key points\n"
-    "No explanations, no steps, no words. ONLY the answer."
+    "You are a math answer extractor for ALEKS. "
+    "RULES — follow exactly:\n"
+    "- Output THE FINAL ANSWER ONLY. One line. Nothing else.\n"
+    "- NO steps, NO reasoning, NO explanation, NO 'therefore', NO 'the answer is'.\n"
+    "- DO NOT show your work. DO NOT write sentences.\n"
+    "- If the answer is a number: write just the number (e.g. 3.14)\n"
+    "- If a fraction: write it as a/b (e.g. 3/4)\n"
+    "- If multiple choice: write just the letter (e.g. B)\n"
+    "- If an expression: write just the expression (e.g. 4x+3)\n"
+    "WRONG: 'The answer is 3.14 because...'\n"
+    "RIGHT: 3.14\n\n"
+
+    "CRITICAL — TRIGONOMETRY: Always compute trig functions (sin, cos, tan, etc.) in RADIANS. "
+    "Never use degrees unless the problem explicitly states degrees (°). "
+    "When you see expressions like (3π/7), treat them as radian values.\n\n"
+
+    "EXACT ALEKS INPUT FORMATS (the automation types these character-by-character):\n\n"
+
+    "1. DECIMAL number: just the number, rounded as instructed (e.g. 4.93 or -5 or 12.8)\n"
+    "2. FRACTION: numerator/denominator — no spaces (e.g. 3/4 or -1/9 or 15/7)\n"
+    "3. MULTIPLE CHOICE: just the single letter (e.g. B)\n"
+    "4. EXPRESSION: use ^ for exponents, * for multiply (e.g. 4x+3 or x^2-5x+6)\n"
+    "5. INTERVAL NOTATION: use parentheses/brackets and U for union (e.g. (-inf,2)U(2,inf))\n"
+    "6. EQUATION: write full equation (e.g. y=2x+1 or x^2+y^2=25)\n"
+    "7. MIXED NUMBER: write as whole+fraction (e.g. 3 1/2 means 3 and 1/2)\n\n"
+
+    "5. FUNCTION OPERATIONS (f+g, f-g, f*g, fog):\n"
+    "   - Compute algebraically, return simplified expression\n"
+    "   - For (f-g)(2): evaluate each function at 2, then subtract\n\n"
+
+    "6. INVERSE FUNCTION: isolate the input variable, return expression for x\n\n"
+
+    "7. DOMAIN/RANGE from graph:\n"
+    "   - Domain: read left→right, skip vertical asymptotes\n"
+    "   - Range: read bottom→top, skip horizontal asymptotes\n"
+    "   - Use interval notation: (-inf,2)U(2,inf)\n\n"
+
+    "8. LOGARITHM problems:\n"
+    "   - Expand: log(x^3*z) → 3log(x)+log(z)\n"
+    "   - Compress: combine into single log\n"
+    "   - Solve log(f(x))=log(g(x)): set f(x)=g(x) and solve\n"
+    "   - Convert: log_b(x)=n ↔ b^n=x\n\n"
+
+    "9. GRAPH MATCHING (rational/exponential functions):\n"
+    "   - Find vertical asymptotes (denominator=0), horizontal asymptote (degree comparison)\n"
+    "   - Find y-intercept (x=0), identify which graph matches\n"
+    "   - Return: the graph label letter (e.g., C)\n\n"
+
+    "10. CONIC SECTIONS:\n"
+    "    - Same signs on x² and y² → circle or ellipse\n"
+    "    - Opposite signs → hyperbola\n"
+    "    - Only one squared variable → parabola\n"
+    "    - Complete the square to find center/vertex\n"
+    "    - Circle: (x-h)²+(y-k)²=r²\n"
+    "    - Parabola from vertex (h,k) and directrix: (y-k)²=4p(x-h) or (x-h)²=4p(y-k)\n\n"
+
+    "11. SIMPLE GRAPH (single curve): return JSON:\n"
+    '    {"type":"graph","asymptotes":[x1,x2],"points":[[x,y],...],"tool":"curve"}\n'
+    "    - tool: 'curve'(parabola), 'line', 'ray'(semi-recta), 'segment', 'point'\n"
+    "    - For EXPONENTIAL graphs: always evaluate at x=-2,-1,0,1,2 (ALEKS standard)\n"
+    "    - asymptotes: x-values of vertical asymptotes ([] if none)\n\n"
+
+    "12. PIECEWISE GRAPH: return JSON with 'piecewise' array:\n"
+    '    {"type":"graph","piecewise":[\n'
+    '      {"tool":"curve","points":[[0,10],[4,-6]],"crop":[-4,4],\n'
+    '       "endpoints":[{"x":-4,"y":6,"closed":true},{"x":4,"y":-6,"closed":false}]},\n'
+    '      {"tool":"ray","points":[[4,-6],[5,-9]],\n'
+    '       "endpoints":[{"x":4,"y":-6,"closed":true}]}\n'
+    "    ]}\n"
+    "    - crop:[x_min,x_max] = domain limit for that piece (use scissors/tijera tool)\n"
+    "    - closed:true = filled dot (≤,≥); closed:false = open dot (<,>)\n"
+    "    - For isolated single points: tool='point', one entry in points, closed:true if =\n"
+    "    - Use decimal approximations to 2 decimal places\n"
 )
+
 
 # ─── ALEKS Activities (by Semester) ─────────────────────────────
 # Each semester maps activity numbers → activity names.
@@ -129,6 +202,29 @@ SEMESTERS = {
 # Default semester (overridden at runtime by user selection in main.py)
 SEMESTER = 1
 ACTIVITIES = SEMESTERS[SEMESTER][1]
+
+# ─── Auto-Detect Semester from Class Name ───────────────────────
+# Maps keywords/substrings found in ALEKS class names → semester number.
+# The first matching pattern wins. Case-insensitive.
+# ⚠️  Customize these to match YOUR actual ALEKS class names!
+CLASS_SEMESTER_PATTERNS = {
+    # Spanish patterns
+    "1er semestre": 1, "semestre 1": 1, "primer semestre": 1,
+    "2do semestre": 2, "semestre 2": 2, "segundo semestre": 2,
+    "3er semestre": 3, "semestre 3": 3, "tercer semestre": 3,
+    "4to semestre": 4, "semestre 4": 4, "cuarto semestre": 4,
+    # English patterns
+    "semester 1": 1, "1st semester": 1,
+    "semester 2": 2, "2nd semester": 2,
+    "semester 3": 3, "3rd semester": 3,
+    "semester 4": 4, "4th semester": 4,
+    # Topic-based patterns
+    "foundations": 1, "fundamentos": 1,
+    "intermediate algebra": 2, "álgebra intermedia": 2, "algebra intermedia": 2,
+    "precalcul": 3, "precálcul": 3, "trigonometr": 3,
+    "advanced calculus": 4, "linear algebra": 4, "álgebra lineal": 4,
+    "cálculo avanzado": 4, "calculo avanzado": 4,
+}
 
 
 # ─── Browser Settings ───────────────────────────────────────────
