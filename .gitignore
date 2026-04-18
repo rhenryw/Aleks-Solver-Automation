@@ -1,0 +1,10 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Screenshots
+screenshots/
+tmp_screenshots/
+browser_profile/
+.claude/

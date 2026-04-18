@@ -5,11 +5,9 @@ Handles:
   1. Launch browser and login
   2. Navigate to specific activity
   3. Extract question text from the page
-  4. Input answers (text fields, multiple choice, dropdowns)
-  5. Submit and advance to next question
+  4. Submit and advance to next question
 """
 
-import json
 import logging
 import time
 from pathlib import Path
@@ -54,13 +52,14 @@ class AleksBrowser:
         log.info("Launching browser...")
         self._playwright = sync_playwright().start()
 
-        self._browser = self._playwright.chromium.launch(
+        user_data_dir = str(Path(config.__file__).parent / "browser_profile")
+
+        self._context = self._playwright.chromium.launch_persistent_context(
+            user_data_dir=user_data_dir,
             headless=config.HEADLESS,
             slow_mo=config.SLOW_MO,
-        )
-
-        # Context with realistic viewport and user agent
-        self._context = self._browser.new_context(
+            args=["--disable-blink-features=AutomationControlled"],
+            ignore_default_args=["--enable-automation"],
             viewport={"width": 1366, "height": 768},
             user_agent=(
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -69,13 +68,15 @@ class AleksBrowser:
             ),
         )
 
-        self.page = self._context.new_page()
+        self.page = self._context.pages[0] if self._context.pages else self._context.new_page()
         self.page.set_default_timeout(config.TIMEOUT)
         log.info("Browser ready")
 
     def close(self):
         """Clean shutdown."""
-        if self._browser:
+        if self._context:
+            self._context.close()
+        elif self._browser:
             self._browser.close()
         if self._playwright:
             self._playwright.stop()
@@ -452,21 +453,35 @@ class AleksBrowser:
 
         # Open the sidebar via the hamburger (≡) button
         hamburger_selectors = [
+            '[aria-label*="menu" i]',
+            '[aria-label*="menú" i]',
+            '[title*="menu" i]',
+            '[title*="menú" i]',
             'button[aria-label*="menu" i]',
             'button[aria-label*="navigation" i]',
+            'a[aria-label*="menu" i]',
             '[class*="hamburger"]',
+            '[id*="menu"]',
             '[class*="menu-toggle"]',
             '[class*="nav-toggle"]',
+            'button.Navbar__menu__button',
             'button:has(svg)',           # icon-only button
             'button.MuiIconButton-root', # Material UI icon button
         ]
+        # Wait for the dashboard to finish loading before probing the menu
+        try:
+            self.page.wait_for_selector('[title*="menu" i], button:has(svg)', timeout=10_000)
+            time.sleep(1) # Extra buffer for react hydration
+        except Exception:
+            pass
+
         for sel in hamburger_selectors:
             try:
                 el = self.page.locator(sel).first
                 if el.is_visible():
                     el.click()
                     time.sleep(1)
-                    log.info("  Opened hamburger menu")
+                    log.info(f"  Opened hamburger menu ({sel})")
                     break
             except Exception:
                 continue
@@ -516,6 +531,10 @@ class AleksBrowser:
 
         # ── Step 2: Click the magnifier / search button ─────────────
         magnifier_selectors = [
+            '[aria-label*="search" i]',
+            '[aria-label*="buscar" i]',
+            '[title*="search" i]',
+            '[title*="buscar" i]',
             'button[aria-label*="search" i]',
             'button[aria-label*="buscar" i]',
             '[class*="search"] button',
@@ -525,6 +544,9 @@ class AleksBrowser:
             # generic: any small button that contains an svg (icon button) near the list
             '[class*="assignment"] button:has(svg)',
             '[class*="list"] button:has(svg)',
+            # Sometimes ALEKS uses "filter" instead of search
+            '[aria-label*="filter" i]',
+            '[aria-label*="filtro" i]',
         ]
         for sel in magnifier_selectors:
             try:
@@ -532,7 +554,7 @@ class AleksBrowser:
                 if el.is_visible():
                     el.click()
                     time.sleep(1)
-                    log.info("  Clicked magnifier / search button")
+                    log.info(f"  Clicked magnifier / search button ({sel})")
                     break
             except Exception:
                 continue
@@ -609,52 +631,6 @@ class AleksBrowser:
         self.screenshot("nav_failed")
         log.warning(f"Could not find activity element. Check screenshots/nav_failed.png")
 
-    # ─── Question Screenshot ────────────────────────────────────────
-
-    def capture_question_screenshot(self, name: str = "question") -> Path | None:
-        """
-        Screenshot ONLY the question body — not the nav, header, or answer inputs.
-        Tries progressively broader selectors until something reasonable is found.
-        Saves to tmp_screenshots/<name>.png.
-        """
-        tmp_dir = Path("tmp_screenshots")
-        tmp_dir.mkdir(exist_ok=True)
-        path = tmp_dir / f"{name}.png"
-
-        # Ordered from most specific to broadest — stop at first visible element
-        # that is large enough to contain a real question (>100px tall)
-        selectors = [
-            '.problem-text',
-            '.question-content',
-            '[class*="problem-body"]',
-            '[class*="question-body"]',
-            '[class*="exercise"]',
-            '[class*="problem"]',
-            '[class*="question"]',
-            'main',
-            '[role="main"]',
-        ]
-        try:
-            for sel in selectors:
-                el = self.page.query_selector(sel)
-                if not el or not el.is_visible():
-                    continue
-                box = el.bounding_box()
-                if box and box["height"] > 80:
-                    el.screenshot(path=str(path))
-                    log.info(f"  Screenshot ({sel}) → {path}")
-                    return path
-
-            # Last resort: clip to the center content area, avoiding top nav bar
-            vp = self.page.viewport_size or {"width": 1366, "height": 768}
-            clip = {"x": 250, "y": 80, "width": vp["width"] - 280, "height": vp["height"] - 100}
-            self.page.screenshot(path=str(path), clip=clip)
-            log.info(f"  Screenshot (center clip) → {path}")
-            return path
-        except Exception as e:
-            log.warning(f"  Screenshot failed: {e}")
-            return None
-
     # ─── Question Reading ───────────────────────────────────────────
 
     def has_question(self) -> bool:
@@ -685,60 +661,230 @@ class AleksBrowser:
 
         return False
 
-    def is_already_correct(self) -> bool:
+    def get_attempt_info(self) -> dict:
         """
-        Check if the current question is already marked correct.
+        Read attempt information from the ALEKS page.
 
-        ALEKS shows this in two ways:
-          1. A green "Correct" banner on screen
-          2. The current question number bubble is green (has a checkmark ✓)
+        ALEKS shows "Attempt X of 3" (or "Intento X de 3") ONLY when a
+        question was previously answered incorrectly.  First attempts never
+        show this text.
+
+        Returns:
+            {
+                "attempt":  int  – current attempt number (1-3), 0 if not found
+                "max":      int  – max attempts (usually 3), 0 if not found
+                "is_retry": bool – True when attempt > 1 (question was wrong before)
+            }
+        """
+        import re as _re
+
+        try:
+            body_text = self.page.evaluate(
+                "() => (document.body.innerText || '').substring(0, 5000)"
+            )
+
+            patterns = [
+                # "Question Attempt: 3 of 3"  ← actual ALEKS header format
+                r'[Aa]ttempt[:\s]+(\d+)\s+(?:of|from)\s+(\d+)',
+                # "Intento: 2 de 3"
+                r'[Ii]ntento[:\s]+(\d+)\s+de\s+(\d+)',
+                # "Attempt 2/3" or "Attempt: 2/3"
+                r'[Aa]ttempt[:\s]+(\d+)/(\d+)',
+                r'[Ii]ntento[:\s]+(\d+)/(\d+)',
+                # "2 of 3 attempts"
+                r'(\d+)\s+(?:of|de|from)\s+(\d+)\s+[Aa]ttempts?',
+                r'(\d+)\s+de\s+(\d+)\s+[Ii]ntentos?',
+            ]
+
+            for pattern in patterns:
+                m = _re.search(pattern, body_text)
+                if m:
+                    attempt = int(m.group(1))
+                    max_att = int(m.group(2))
+                    log.info(f"  Attempt info detected: {attempt}/{max_att}")
+                    return {"attempt": attempt, "max": max_att, "is_retry": attempt > 1}
+
+        except Exception as e:
+            log.warning(f"  get_attempt_info failed: {e}")
+
+        return {"attempt": 0, "max": 0, "is_retry": False}
+
+    def get_current_question_number(self) -> int:
+        """
+        Read the currently active question number from the ALEKS nav strip.
+
+        Should be called ONLY when the question is in incorrect state
+        (i.e. get_attempt_info returned attempt > 0), because the nav
+        state is most reliable when ALEKS is showing a retry.
+
+        Returns the active bubble number, or 0 if it cannot be determined.
         """
         try:
-            # Fast text check — green "Correct" banner
-            if self.page.query_selector('text="Correct"') or \
-               self.page.query_selector('text="Correcto"'):
-                return True
-
-            # Check if the active question number bubble is green (already answered)
-            result = self.page.evaluate("""
+            num = self.page.evaluate(r"""
                 () => {
-                    // ALEKS question number bubbles — find the active/selected one
-                    // A correct question number has a green background or a checkmark inside
-                    const bubbles = Array.from(document.querySelectorAll(
-                        '[class*="question"] span, [class*="progress"] span, ' +
-                        '[class*="questionNumber"], [class*="question_number"], ' +
-                        'span[class*="green"], span[class*="correct"], ' +
-                        '[class*="questionNav"] button, [class*="question-nav"] button'
-                    ));
+                    // Find small numeric elements in the top nav (y < 200px)
+                    const candidates = Array.from(document.querySelectorAll(
+                        'button, span, li, td, div'
+                    )).filter(el => {
+                        const r  = el.getBoundingClientRect();
+                        const t  = (el.textContent || '').trim();
+                        return (
+                            r.top < 200 && r.width > 5 && r.width < 100 &&
+                            r.height > 5 && r.height < 100 &&
+                            /^\d+$/.test(t) && el.offsetParent !== null
+                        );
+                    });
 
-                    for (const el of bubbles) {
-                        const style = window.getComputedStyle(el);
-                        const bg = style.backgroundColor || '';
-                        const text = (el.textContent || '').trim();
-
-                        // Green background = already correct
-                        const isGreen = bg.includes('0, 128') || bg.includes('34, 139') ||
-                                        bg.includes('0, 153') || bg.includes('76, 175') ||
-                                        bg.includes('56, 142') || bg.includes('46, 125');
-
-                        // Must be the current question (has focus / aria-current / active class)
+                    for (const el of candidates) {
+                        const hasCurrent = (
+                            el.getAttribute('aria-current') ||
+                            el.getAttribute('aria-selected') === 'true' ||
+                            el.getAttribute('aria-pressed')  === 'true'
+                        );
                         const cls = (el.className || '').toLowerCase();
-                        const isCurrent = cls.includes('active') || cls.includes('current') ||
-                                          cls.includes('selected') ||
-                                          el.getAttribute('aria-current') === 'true' ||
-                                          el.getAttribute('aria-current') === 'page';
-
-                        if (isGreen && isCurrent) return true;
-
-                        // Checkmark symbol inside current bubble
-                        if ((text === '✓' || text.startsWith('✓')) && isCurrent) return true;
+                        const isActive = (
+                            cls.includes('active') || cls.includes('current') ||
+                            cls.includes('selected') || cls.includes('focus')
+                        );
+                        if (hasCurrent || isActive) {
+                            const n = parseInt((el.textContent || '').trim(), 10);
+                            if (!isNaN(n) && n > 0 && n <= 50) return n;
+                        }
                     }
-                    return false;
+                    return 0;
                 }
             """)
-            return bool(result)
-        except Exception:
+            if num and num > 0:
+                log.info(f"  Active question bubble from page: {num}")
+                return int(num)
+        except Exception as e:
+            log.warning(f"  get_current_question_number failed: {e}")
+        return 0
+
+    def get_bubble_status(self, question_num: int) -> str:
+        """
+        Screenshot-based color check for question bubble N.
+
+        Crops the exact bubble from the nav strip and classifies it:
+          'correct'   — vibrant GREEN  (answered right)
+          'incorrect' — RED            (answered wrong, may still have attempts)
+          'active'    — TEAL / other   (unanswered or currently selected)
+
+        The tmp screenshot is deleted after analysis.
+        """
+        from PIL import Image
+        from pathlib import Path
+
+        tmp_path = Path(__file__).parent / "screenshots" / "_bubble_check.png"
+
+        try:
+            self.page.screenshot(path=str(tmp_path))
+            img = Image.open(tmp_path).convert("RGB")
+            width, height = img.size
+
+            bubble_spacing  = 68
+            bubble_start_x  = 65
+            bubble_radius   = 22
+
+            bubble_cx = bubble_start_x + (question_num - 1) * bubble_spacing
+            bubble_cy = int(height * 0.115)
+
+            crop_left   = max(0,     bubble_cx - bubble_radius)
+            crop_right  = min(width, bubble_cx + bubble_radius)
+            crop_top    = max(0,     bubble_cy - bubble_radius)
+            crop_bottom = min(height, bubble_cy + bubble_radius)
+
+            vibrant_green = 0
+            red           = 0
+            teal          = 0
+            total         = 0
+
+            for y in range(crop_top, crop_bottom):
+                for x in range(crop_left, crop_right):
+                    r, g, b = img.getpixel((x, y))
+                    total += 1
+                    if g > 100 and g > r * 1.3 and g > b * 1.4:
+                        vibrant_green += 1
+                    elif r > 150 and r > g * 2 and r > b * 2:
+                        red += 1
+                    elif g > 80 and b > 80 and abs(g - b) < 40 and g > r:
+                        teal += 1
+
+            green_pct = (vibrant_green / total * 100) if total > 0 else 0
+            red_pct   = (red           / total * 100) if total > 0 else 0
+            teal_pct  = (teal          / total * 100) if total > 0 else 0
+
+            print(f"\n\033[1;33m  ┌─ BUBBLE CHECK Q{question_num} "
+                  f"(x={crop_left}-{crop_right}, y={crop_top}-{crop_bottom}) ──\033[0m")
+            print(f"\033[1;33m  │\033[0m  \033[1;32mGreen: {green_pct:.1f}%\033[0m  "
+                  f"\033[1;31mRed: {red_pct:.1f}%\033[0m  "
+                  f"\033[0;36mTeal: {teal_pct:.1f}%\033[0m")
+
+            if green_pct > 10:
+                print(f"\033[1;32m  │  >>> ✅ Q{question_num} CORRECT\033[0m")
+                print(f"\033[1;33m  └──────────────────────────────────\033[0m\n")
+                return 'correct'
+
+            if red_pct > 3:
+                print(f"\033[1;31m  │  >>> ❌ Q{question_num} INCORRECT/RED\033[0m")
+                print(f"\033[1;33m  └──────────────────────────────────\033[0m\n")
+                return 'incorrect'
+
+            print(f"\033[0;36m  │  >>> ○ Q{question_num} ACTIVE\033[0m")
+            print(f"\033[1;33m  └──────────────────────────────────\033[0m\n")
+            return 'active'
+
+        except Exception as e:
+            log.warning(f"  [bubble] Screenshot check failed: {e}")
+            return 'active'   # safe default: attempt to solve
+
+        finally:
+            try:
+                if tmp_path.exists():
+                    tmp_path.unlink()
+            except Exception:
+                pass
+
+    def is_correct_answer_shown(self) -> bool:
+        """
+        Check whether ALEKS is currently displaying the 'Correct Answer' reveal.
+
+        This only appears after ALL attempts on a question have been exhausted.
+        It means the question is dead — no more input is possible.
+
+        Checks both DOM elements (by class/id) and visible page text.
+        """
+        try:
+            found = self.page.evaluate(r"""
+                () => {
+                    // 1. Known CSS classes/ids ALEKS uses for the answer reveal
+                    const el = document.querySelector(
+                        '[class*="correct_answer"], [class*="correctAnswer"], ' +
+                        '[class*="correct-answer"], [id*="correct_answer"], ' +
+                        '[id*="correctAnswer"], [class*="solution_reveal"], ' +
+                        '[class*="solutionReveal"]'
+                    );
+                    if (el && el.offsetParent !== null) return true;
+
+                    // 2. Visible text scan — look for the reveal heading
+                    // Matches "CORRECT ANSWER", "Correct Answer:", "Respuesta Correcta", etc.
+                    const body = (document.body.innerText || '').substring(0, 4000);
+                    return (
+                        /correct\s+answer/i.test(body) ||
+                        /respuesta\s+correcta/i.test(body) ||
+                        /the correct answer is/i.test(body) ||
+                        /la respuesta correcta es/i.test(body)
+                    );
+                }
+            """)
+            return bool(found)
+        except Exception as e:
+            log.warning(f"  is_correct_answer_shown failed: {e}")
             return False
+
+    def should_skip_question(self, question_num: int) -> bool:
+        """Backward-compat wrapper — returns True for correct or incorrect bubbles."""
+        return self.get_bubble_status(question_num) in ('correct', 'incorrect')
 
     def read_question(self) -> str:
         """
@@ -778,16 +924,35 @@ class AleksBrowser:
                     el.replaceWith(span);
                 });
 
-                // 2. Remove scripts, styles, canvas, svg, hidden UI elements
+                // 2. Remove scripts, styles, canvas, svg, hidden UI elements,
+                //    navigation buttons, copyright footer, and the "CORRECT ANSWER"
+                //    reveal section that appears after a failed final attempt.
                 clone.querySelectorAll(
                     'script, style, canvas, svg, ' +
                     'button, input, textarea, select, ' +
                     '.ansed_root, .ansed_tree, .ansed_canvas, ' +
-                    '[aria-hidden="true"], [class*="toolbar"], [class*="navbar"]'
+                    '[aria-hidden="true"], [class*="toolbar"], [class*="navbar"], ' +
+                    '[class*="footer"], [class*="copyright"], [class*="legal"], ' +
+                    '[class*="correct_answer"], [class*="correctAnswer"], ' +
+                    '[class*="solution"], [class*="explanation"], ' +
+                    '[class*="nav"], [class*="sidebar"], [class*="header"]'
                 ).forEach(el => el.remove());
 
-                // 3. Return clean text
-                return (clone.innerText || clone.textContent || '').trim();
+                // 3. Get raw text, then strip known noise line-by-line
+                const raw = (clone.innerText || clone.textContent || '').trim();
+                const NOISE = [
+                    /next question/i, /previous question/i, /save for later/i,
+                    /submit assignment/i, /correct answer/i, /respuesta correcta/i,
+                    /mcgraw.?hill/i, /terms of use/i, /privacy/i,
+                    /©\s*20\d\d/i, /graph data/i, /\[graph/i,
+                    /imgur\.com/i, /i\.imgur/i,
+                ];
+                const lines = raw.split('\n').filter(line => {
+                    const t = line.trim();
+                    if (!t) return false;
+                    return !NOISE.some(rx => rx.test(t));
+                });
+                return lines.join('\n').trim();
             }
         """)
 
@@ -800,680 +965,99 @@ class AleksBrowser:
 
     # ─── Answer Input ───────────────────────────────────────────────
 
-    def _clear_aleks_input(self):
-        """Select all and delete content in the currently focused ALEKS input."""
-        self.page.keyboard.press("Control+a")
-        time.sleep(0.1)
-        self.page.keyboard.press("Delete")
-        time.sleep(0.1)
-        # Second pass — ALEKS sometimes needs Backspace after Delete
-        self.page.keyboard.press("Control+a")
-        self.page.keyboard.press("Backspace")
-        time.sleep(0.1)
-
-    def _type_aleks_answer(self, answer: str):
+    def input_answer(self, answer: str) -> bool:
         """
-        Type an answer into the currently-focused ALEKS input field.
+        Input the AI answer into the ALEKS answer field.
 
-        ALEKS keyboard shortcuts for math notation:
-          /        → fraction (numerator already typed, / moves to denominator)
-          ^        → exponent (superscript)
-          sqrt(x)  → type as sqrt then ( x )  — ALEKS recognises it
-          *        → multiplication
-          pi       → π
-          inf      → ∞
-          abs(x)   → |x|
+        Delegates to ALEKSInputLayer which handles all 44 ALEKS input types:
+        fractions, square roots, exponents, mixed numbers, pi, trig,
+        absolute values, inequalities, and interactive graphs.
 
-        For a plain fraction like 3/4:
-          - type "3", press "/", type "4", press Tab/Right to exit denominator
+        Args:
+            answer: Either a raw expression string ("3/4", "sqrt(16)", "x^2+3")
+                    or a JSON string from the AI
+                    ('{"type":"fraction","numerator":"3","denominator":"4"}')
+
+        Returns True if input operations completed without error.
         """
-        import re
+        from aleks_math_input import ALEKSInputLayer
+        layer = ALEKSInputLayer(self.page)
+        return layer.input_answer(answer)
 
-        # Handle fractions: "3/4" → type numerator, /, denominator, then exit
-        frac_match = re.fullmatch(r'(-?\d+)\s*/\s*(-?\d+)', answer.strip())
-        if frac_match:
-            num, den = frac_match.group(1), frac_match.group(2)
-            self.page.keyboard.type(num, delay=40)
-            self.page.keyboard.press("/")
-            time.sleep(0.15)
-            self.page.keyboard.type(den, delay=40)
-            # Exit the denominator field
-            self.page.keyboard.press("Tab")
-            log.info(f"  Typed fraction {num}/{den}")
-            return
+    # ─── Pre/Post Verification ───────────────────────────────────────
 
-        # For everything else type character by character
-        self.page.keyboard.type(answer, delay=40)
-
-    def input_answer(self, answer: str):
+    def press_continue(self):
         """
-        Input the answer into ALEKS.
-
-        Priority order:
-        1. Graph JSON  → plot on canvas
-        2. Multiple choice (single letter) → click radio/button
-        3. ALEKS custom answer input (.answerBoxInput, [id^='answerBox']) → type
-        4. Standard text inputs → type
-        5. MathQuill / contenteditable → type
+        Press the Continue / OK / Continuar / Siguiente button.
+        Searches ALL element types (button, a, div, span, input) because
+        ALEKS doesn't always use standard <button> tags.
         """
-        answer = answer.strip()
-        log.info(f"  Inputting answer: {answer}")
+        time.sleep(0.5)
 
-        # 1. Graph answer (JSON)
-        graph_data = self._parse_graph_answer(answer)
-        if graph_data:
-            log.info("  Detected GRAPH answer — plotting on canvas")
-            self._input_graph_answer(graph_data)
-            return
+        labels = ['Continue', 'Continuar', 'OK', 'Ok', 'Siguiente', 'Next']
 
-        # 2. Multiple choice — single letter A-H
-        if len(answer) == 1 and answer.upper() in "ABCDEFGH":
-            if self._click_choice(answer.upper()):
-                return
-
-        # 3. ALEKS-specific answer box selectors (highest priority for text)
-        aleks_selectors = [
-            '[id^="answerBox"]',
-            '[class*="answerBox"]',
-            '[id^="answer_box"]',
-            '[class*="answer_box"]',
-            'input.answer',
-            'input[name*="answer"]',
-            'input[id*="answer"]',
-        ]
-
-        for selector in aleks_selectors:
+        # ── 1. Playwright locator: text= matches any visible element ──
+        for label in labels:
             try:
-                el = self.page.query_selector(selector)
-                if el and el.is_visible():
-                    el.click()
-                    time.sleep(0.1)
-                    self._clear_aleks_input()
-                    self._type_aleks_answer(answer)
-                    log.info(f"  Typed into ALEKS box: {selector}")
-                    return
+                loc = self.page.locator(f'text="{label}"').first
+                if loc.is_visible():
+                    loc.click()
+                    log.info(f"  ✅ Pressed '{label}' (locator)")
+                    time.sleep(2)
+                    return True
             except Exception:
                 continue
 
-        # 4. Generic text inputs
-        generic_selectors = [
-            'input[type="text"]:visible',
-            'textarea:visible',
+        # ── 2. Query selector: button, a, div, span, input ──
+        all_selectors = [
+            'button', 'a', 'input[type="button"]', 'input[type="submit"]',
+            '[role="button"]', 'div', 'span',
         ]
-
-        for selector in generic_selectors:
-            try:
-                el = self.page.wait_for_selector(selector, timeout=3000)
-                if el:
-                    el.click()
-                    time.sleep(0.1)
-                    el.fill("")
-                    self._clear_aleks_input()
-                    self._type_aleks_answer(answer)
-                    log.info(f"  Typed into: {selector}")
-                    return
-            except Exception:
-                continue
-
-        # 5. MathQuill / contenteditable
-        try:
-            math_input = self.page.query_selector(
-                '.mq-editable-field, .mathquill-editable, [contenteditable="true"]'
-            )
-            if math_input and math_input.is_visible():
-                math_input.click()
-                time.sleep(0.1)
-                self._clear_aleks_input()
-                self._type_aleks_answer(answer)
-                log.info("  Typed into math/contenteditable field")
-                return
-        except Exception:
-            pass
-
-        log.warning(f"  Could not find input field for answer: {answer}")
-        self.screenshot("input_failed")
-
-    # ─── Graph Answer Handling ──────────────────────────────────────
-
-    def _parse_graph_answer(self, answer: str) -> dict | None:
-        """
-        Try to parse the answer as graph JSON data.
-        
-        Expected format from Claude:
-        {
-            "type": "graph",
-            "asymptotes": [-3.14, 0, 3.14],
-            "points": [[1.57, 1], [-1.57, -1]],
-            "tool": "curve"  (optional: "line", "curve", "ray", "segment")
-        }
-        """
-        try:
-            data = json.loads(answer)
-            if isinstance(data, dict) and data.get("type") == "graph":
-                return data
-        except (json.JSONDecodeError, TypeError):
-            pass
-        return None
-
-    def _get_graph_canvas(self) -> dict | None:
-        """
-        Find the ALEKS graphing canvas and return its bounding box.
-        
-        ALEKS uses an SVG or canvas-based graph widget.
-        Returns: {x, y, width, height} of the graph area, or None.
-        """
-        canvas_selectors = [
-            'svg[class*="graph"]',
-            'svg[class*="plot"]',
-            'canvas[class*="graph"]',
-            '.graph-container svg',
-            '.plot-area',
-            '.graph-area',
-            '[class*="coordinate-plane"]',
-            '[class*="coord-plane"]',
-            'svg',  # Fallback: first SVG that looks like a graph
-        ]
-
-        for selector in canvas_selectors:
+        for selector in all_selectors:
             try:
                 elements = self.page.query_selector_all(selector)
                 for el in elements:
-                    bbox = el.bounding_box()
-                    if bbox and bbox["width"] > 150 and bbox["height"] > 150:
-                        log.info(f"  Graph canvas found via: {selector}")
-                        log.info(f"    Position: ({bbox['x']:.0f}, {bbox['y']:.0f})  "
-                                 f"Size: {bbox['width']:.0f}×{bbox['height']:.0f}")
-                        return bbox
+                    if el.is_visible():
+                        text = (el.text_content() or '').strip()
+                        if text.lower() in [l.lower() for l in labels]:
+                            el.click()
+                            log.info(f"  ✅ Pressed '{text}' ({selector})")
+                            time.sleep(2)
+                            return True
             except Exception:
                 continue
 
-        return None
-
-    def _calibrate_grid(self, canvas_bbox: dict) -> dict:
-        """
-        Determine the coordinate-to-pixel mapping for the graph.
-        
-        Tries to read axis labels from the DOM to find the actual range.
-        Falls back to a standard ±10 range which is common in ALEKS.
-        
-        Returns calibration dict with origin pixel and scale factors.
-        """
-        # Default range: standard ALEKS grid is typically -10 to 10
-        x_min, x_max = -10, 10
-        y_min, y_max = -10, 10
-
-        # Try to read axis tick labels from the DOM
-        try:
-            tick_values = self.page.evaluate("""
-                () => {
-                    // Look for axis labels in SVG text elements or spans near the graph
-                    const texts = document.querySelectorAll(
-                        'svg text, .tick-label, [class*="axis"] text, [class*="tick"] text'
-                    );
-                    const values = [];
-                    texts.forEach(t => {
-                        const val = parseFloat(t.textContent);
-                        if (!isNaN(val)) values.push(val);
-                    });
-                    return values;
-                }
-            """)
-            if tick_values and len(tick_values) >= 4:
-                x_min = min(tick_values)
-                x_max = max(tick_values)
-                y_min = x_min  # Assume symmetric axes
-                y_max = x_max
-                log.info(f"  Grid range detected from ticks: [{x_min}, {x_max}]")
-        except Exception:
-            pass
-
-        # Try reading from ALEKS-specific data attributes
-        try:
-            grid_range = self.page.evaluate("""
-                () => {
-                    const g = document.querySelector('[data-x-min], [data-xmin]');
-                    if (g) {
-                        return {
-                            xMin: parseFloat(g.getAttribute('data-x-min') || g.getAttribute('data-xmin')),
-                            xMax: parseFloat(g.getAttribute('data-x-max') || g.getAttribute('data-xmax')),
-                            yMin: parseFloat(g.getAttribute('data-y-min') || g.getAttribute('data-ymin')),
-                            yMax: parseFloat(g.getAttribute('data-y-max') || g.getAttribute('data-ymax')),
-                        };
-                    }
-                    return null;
-                }
-            """)
-            if grid_range:
-                x_min = grid_range.get("xMin", x_min)
-                x_max = grid_range.get("xMax", x_max)
-                y_min = grid_range.get("yMin", y_min)
-                y_max = grid_range.get("yMax", y_max)
-                log.info(f"  Grid range from data attrs: x[{x_min},{x_max}] y[{y_min},{y_max}]")
-        except Exception:
-            pass
-
-        # Calculate pixel mapping
-        # Origin (0,0) in pixel coordinates
-        cx = canvas_bbox["x"]
-        cy = canvas_bbox["y"]
-        cw = canvas_bbox["width"]
-        ch = canvas_bbox["height"]
-
-        # Add small padding (ALEKS graphs have margin inside the canvas)
-        padding_x = cw * 0.05
-        padding_y = ch * 0.05
-        plot_w = cw - 2 * padding_x
-        plot_h = ch - 2 * padding_y
-
-        # Pixels per math unit
-        px_per_unit_x = plot_w / (x_max - x_min)
-        px_per_unit_y = plot_h / (y_max - y_min)
-
-        # Origin in screen pixels
-        origin_px = cx + padding_x + (-x_min) * px_per_unit_x
-        origin_py = cy + padding_y + (y_max) * px_per_unit_y
-
-        calibration = {
-            "x_min": x_min, "x_max": x_max,
-            "y_min": y_min, "y_max": y_max,
-            "origin_px": origin_px,
-            "origin_py": origin_py,
-            "px_per_unit_x": px_per_unit_x,
-            "px_per_unit_y": px_per_unit_y,
-            "canvas": canvas_bbox,
-        }
-
-        log.info(f"  Grid calibrated: origin=({origin_px:.0f},{origin_py:.0f}) "
-                 f"scale=({px_per_unit_x:.1f},{px_per_unit_y:.1f}) px/unit")
-
-        return calibration
-
-    def _coord_to_pixel(self, x: float, y: float, cal: dict) -> tuple[float, float]:
-        """
-        Convert math coordinates (x, y) to screen pixel position.
-        
-        In screen coordinates, Y is inverted (increases downward).
-        """
-        px = cal["origin_px"] + x * cal["px_per_unit_x"]
-        py = cal["origin_py"] - y * cal["px_per_unit_y"]  # Inverted Y
-        return (px, py)
-
-    def _select_graph_tool(self, tool_type: str = "curve"):
-        """
-        Select a drawing tool from the ALEKS graph tool palette.
-        
-        Common tools: 'curve', 'line', 'ray', 'segment', 'point'
-        In the ALEKS palette (see screenshot), tools are icon buttons.
-        """
-        # Map tool names to possible selectors / icon positions
-        # Spanish names from tutorial: "para volar"=curve, "semi recta"=ray,
-        # "lápiz"=pencil/point, "tijera"=scissors/crop, "goma"=eraser
-        tool_selectors = {
-            "curve": [
-                'button[title*="curve" i]',
-                'button[aria-label*="curve" i]',
-                'button[title*="parabola" i]',
-                'button[title*="para volar" i]',
-                '[class*="curve-tool"]',
-                '[class*="tool"] button:nth-child(3)',
-            ],
-            "line": [
-                'button[title*="line" i]',
-                'button[aria-label*="line" i]',
-                '[class*="line-tool"]',
-                '[class*="tool"] button:nth-child(2)',
-            ],
-            "ray": [
-                'button[title*="ray" i]',
-                'button[aria-label*="ray" i]',
-                'button[title*="semi recta" i]',
-                'button[aria-label*="semi recta" i]',
-                'button[title*="half" i]',
-                '[class*="ray-tool"]',
-                '[class*="tool"] button:nth-child(4)',
-            ],
-            "point": [
-                'button[title*="point" i]',
-                'button[aria-label*="point" i]',
-                'button[title*="lápiz" i]',
-                'button[title*="lapiz" i]',
-                '[class*="point-tool"]',
-                '[class*="tool"] button:nth-child(1)',
-            ],
-            "closed_point": [
-                'button[title*="closed" i]',
-                'button[aria-label*="closed" i]',
-                'button[title*="cerrado" i]',
-                'button[title*="filled" i]',
-                '[class*="closed-point"]',
-                'button[title*="point" i]',
-            ],
-            "open_point": [
-                'button[title*="open" i]',
-                'button[aria-label*="open" i]',
-                'button[title*="abierto" i]',
-                'button[title*="hollow" i]',
-                '[class*="open-point"]',
-            ],
-            "asymptote": [
-                'button[title*="asymptote" i]',
-                'button[title*="dashed" i]',
-                'button[aria-label*="asymptote" i]',
-                '[class*="asymptote-tool"]',
-                '[class*="tool"] button:nth-child(5)',
-            ],
-        }
-
-        selectors = tool_selectors.get(tool_type, tool_selectors["curve"])
-
-        for selector in selectors:
+        # ── 3. get_by_text fallback ──
+        for label in labels:
             try:
-                btn = self.page.query_selector(selector)
-                if btn and btn.is_visible():
-                    btn.click()
-                    log.info(f"  Selected {tool_type} tool via: {selector}")
-                    time.sleep(0.5)
-                    return True
-            except Exception:
-                continue
-
-        # Fallback: try clicking the graph tool palette icons by image/position
-        # ALEKS tool palette is usually a grid of small icon buttons
-        try:
-            tool_buttons = self.page.query_selector_all(
-                '.tool-palette button, .graph-tools button, '
-                '[class*="toolbar"] button, [class*="tool-bar"] button'
-            )
-            if tool_buttons:
-                # Map tool type to approximate button index in the palette
-                tool_indices = {
-                    "point": 0, "line": 1, "curve": 2,
-                    "ray": 3, "asymptote": 3, "segment": 4,
-                }
-                idx = tool_indices.get(tool_type, 2)
-                if idx < len(tool_buttons):
-                    tool_buttons[idx].click()
-                    log.info(f"  Selected {tool_type} tool (button index {idx})")
-                    time.sleep(0.5)
-                    return True
-        except Exception:
-            pass
-
-        log.warning(f"  Could not find {tool_type} tool in palette")
-        return False
-
-    def _click_graph_icon(self):
-        """
-        Click the 'graph' icon/button to finalize the graph after plotting.
-        ALEKS instructions often say 'Then click on the graph icon.'
-        """
-        graph_icon_selectors = [
-            'button[title*="graph" i]',
-            'button[aria-label*="graph" i]',
-            '[class*="graph-icon"]',
-            '[class*="graph-btn"]',
-            'button:has-text("Graph")',
-        ]
-        for selector in graph_icon_selectors:
-            try:
-                btn = self.page.query_selector(selector)
-                if btn and btn.is_visible():
-                    btn.click()
-                    log.info(f"  Clicked graph icon via: {selector}")
-                    time.sleep(1)
-                    return
-            except Exception:
-                continue
-        log.info("  No separate graph icon found (may not be needed)")
-
-    def _input_graph_answer(self, data: dict):
-        """
-        Plot a graph answer on the ALEKS canvas.
-
-        Supports two formats:
-
-        Simple (single curve/line):
-        {
-            "type": "graph",
-            "asymptotes": [-3.14, 0, 3.14],
-            "points": [[1.57, 1], [-1.57, -1]],
-            "tool": "curve"
-        }
-
-        Piecewise (multiple pieces — from video tutorial):
-        {
-            "type": "graph",
-            "piecewise": [
-                {
-                    "tool": "curve",          # parabola piece
-                    "points": [[0,10],[4,-6]],
-                    "crop": [-4, 4],          # x-domain to keep [x_min, x_max]
-                    "endpoints": [            # closed/open dots at boundaries
-                        {"x": -4, "y": 6, "closed": true},
-                        {"x": 4,  "y": -6, "closed": false}
-                    ]
-                },
-                {
-                    "tool": "ray",            # half-line piece
-                    "points": [[4,-6],[5,-9]],
-                    "endpoints": [
-                        {"x": 4, "y": -6, "closed": true}
-                    ]
-                }
-            ]
-        }
-        """
-        canvas = self._get_graph_canvas()
-        if not canvas:
-            log.error("  Could not find graph canvas on page")
-            self.screenshot("graph_no_canvas")
-            return
-
-        cal = self._calibrate_grid(canvas)
-
-        # ── Piecewise path ───────────────────────────────────────────
-        if "piecewise" in data:
-            log.info(f"  Piecewise graph: {len(data['piecewise'])} pieces")
-            for i, piece in enumerate(data["piecewise"]):
-                tool = piece.get("tool", "curve")
-                points = piece.get("points", [])
-                crop = piece.get("crop")       # [x_min, x_max] or None
-                endpoints = piece.get("endpoints", [])
-
-                log.info(f"  Piece {i+1}: tool={tool}, {len(points)} points")
-
-                # Select the drawing tool
-                self._select_graph_tool(tool)
-                time.sleep(0.3)
-
-                # Plot the key points for this piece
-                for pt in points:
-                    px, py = self._coord_to_pixel(pt[0], pt[1], cal)
-                    px = max(canvas["x"] + 5, min(px, canvas["x"] + canvas["width"] - 5))
-                    py = max(canvas["y"] + 5, min(py, canvas["y"] + canvas["height"] - 5))
-                    self.page.mouse.click(px, py)
-                    log.info(f"    Plotted ({pt[0]}, {pt[1]}) → ({px:.0f}, {py:.0f})")
-                    time.sleep(0.4)
-
-                # Crop the curve to the domain if specified
-                if crop and len(crop) == 2:
-                    self._crop_piece(crop[0], crop[1], cal, canvas)
-
-                # Mark open/closed endpoints
-                for ep in endpoints:
-                    self._mark_endpoint(ep["x"], ep["y"], ep.get("closed", True), cal, canvas)
-
-            self._click_graph_icon()
-            log.info("  Piecewise graph complete")
-            return
-
-        # ── Simple path (asymptotes + points) ───────────────────────
-        asymptotes = data.get("asymptotes", [])
-        if asymptotes:
-            log.info(f"  Plotting {len(asymptotes)} asymptotes")
-            for x_val in asymptotes:
-                px_top = self._coord_to_pixel(x_val, cal["y_max"] * 0.9, cal)
-                px_bot = self._coord_to_pixel(x_val, cal["y_min"] * 0.9, cal)
-                self.page.mouse.click(px_top[0], px_top[1])
-                time.sleep(0.3)
-                self.page.mouse.click(px_bot[0], px_bot[1])
-                time.sleep(0.3)
-                log.info(f"    Asymptote x={x_val}")
-
-        points = data.get("points", [])
-        if points:
-            tool = data.get("tool", "curve")
-            self._select_graph_tool(tool)
-            for pt in points:
-                if len(pt) >= 2:
-                    px, py = self._coord_to_pixel(pt[0], pt[1], cal)
-                    px = max(canvas["x"] + 5, min(px, canvas["x"] + canvas["width"] - 5))
-                    py = max(canvas["y"] + 5, min(py, canvas["y"] + canvas["height"] - 5))
-                    self.page.mouse.click(px, py)
-                    log.info(f"    Point ({pt[0]}, {pt[1]}) → ({px:.0f}, {py:.0f})")
-                    time.sleep(0.4)
-
-        self._click_graph_icon()
-        log.info("  Graph plotting complete")
-
-    def _crop_piece(self, x_min: float, x_max: float, cal: dict, canvas: dict):
-        """
-        Use the ALEKS crop tool to cut a curve between x_min and x_max,
-        then erase the parts outside the domain.
-
-        Flow (from video tutorial):
-        1. Select crop tool
-        2. Click cut point at x_min (on the curve)
-        3. Click cut point at x_max (on the curve)
-        4. Select eraser tool and remove the unwanted segments
-        """
-        log.info(f"  Cropping piece to domain [{x_min}, {x_max}]")
-
-        # Select crop tool (called "tijera" / scissors in Spanish ALEKS)
-        crop_selectors = [
-            'button[title*="tijera" i]',
-            'button[aria-label*="tijera" i]',
-            'button[title*="crop" i]',
-            'button[aria-label*="crop" i]',
-            'button[title*="recortar" i]',
-            'button[title*="scissors" i]',
-            '[class*="crop-tool"]',
-            '[class*="scissors"]',
-            '[class*="tool"] button:nth-child(5)',
-        ]
-        for sel in crop_selectors:
-            try:
-                btn = self.page.locator(sel).first
-                if btn.is_visible():
-                    btn.click()
-                    time.sleep(0.5)
-                    log.info("    Crop tool selected")
-                    break
-            except Exception:
-                continue
-
-        # Click the two cut points (y=0 is a safe mid-curve guess;
-        # ALEKS snaps to the nearest curve automatically)
-        for x_cut in [x_min, x_max]:
-            px, py = self._coord_to_pixel(x_cut, 0, cal)
-            px = max(canvas["x"] + 5, min(px, canvas["x"] + canvas["width"] - 5))
-            py = max(canvas["y"] + 5, min(py, canvas["y"] + canvas["height"] - 5))
-            self.page.mouse.click(px, py)
-            log.info(f"    Cut at x={x_cut} → ({px:.0f}, {py:.0f})")
-            time.sleep(0.5)
-
-        # Select eraser and remove segments outside [x_min, x_max]
-        eraser_selectors = [
-            'button[title*="eras" i]',
-            'button[aria-label*="eras" i]',
-            'button[title*="goma" i]',
-            '[class*="eraser"]',
-            '[class*="erase-tool"]',
-        ]
-        for sel in eraser_selectors:
-            try:
-                btn = self.page.locator(sel).first
-                if btn.is_visible():
-                    btn.click()
-                    time.sleep(0.5)
-                    log.info("    Eraser tool selected")
-                    break
-            except Exception:
-                continue
-
-        # Click slightly outside both ends to erase those segments
-        for x_erase in [x_min - abs(x_max - x_min) * 0.3,
-                         x_max + abs(x_max - x_min) * 0.3]:
-            px, py = self._coord_to_pixel(x_erase, 0, cal)
-            px = max(canvas["x"] + 5, min(px, canvas["x"] + canvas["width"] - 5))
-            py = max(canvas["y"] + 5, min(py, canvas["y"] + canvas["height"] - 5))
-            self.page.mouse.click(px, py)
-            log.info(f"    Erased segment at x={x_erase:.2f}")
-            time.sleep(0.4)
-
-    def _mark_endpoint(self, x: float, y: float, closed: bool, cal: dict, canvas: dict):
-        """
-        Place a closed (filled) or open (hollow) endpoint dot on the graph.
-        Closed = endpoint IS included (≤ or ≥).
-        Open   = endpoint is NOT included (< or >).
-        """
-        point_type = "closed" if closed else "open"
-        log.info(f"  Marking {point_type} endpoint at ({x}, {y})")
-
-        # Select closed_point or open_point tool (bolita cerrada / bolita abierta)
-        self._select_graph_tool("closed_point" if closed else "open_point")
-
-        px, py = self._coord_to_pixel(x, y, cal)
-        px = max(canvas["x"] + 5, min(px, canvas["x"] + canvas["width"] - 5))
-        py = max(canvas["y"] + 5, min(py, canvas["y"] + canvas["height"] - 5))
-        self.page.mouse.click(px, py)
-        log.info(f"    {point_type.capitalize()} dot at ({x}, {y}) → ({px:.0f}, {py:.0f})")
-        time.sleep(0.4)
-
-    def _click_choice(self, letter: str) -> bool:
-        """Click a multiple choice option by letter (A, B, C, D...)."""
-        index = ord(letter) - ord("A")
-
-        choice_selectors = [
-            f'[class*="choice"]:nth-child({index + 1})',
-            f'[class*="option"]:nth-child({index + 1})',
-            f'label:nth-of-type({index + 1})',
-            f'input[type="radio"]:nth-of-type({index + 1})',
-        ]
-
-        for selector in choice_selectors:
-            try:
-                el = self.page.query_selector(selector)
-                if el:
+                el = self.page.get_by_text(label, exact=True).first
+                if el.is_visible():
                     el.click()
-                    log.info(f"  Clicked choice {letter} via: {selector}")
+                    log.info(f"  ✅ Pressed '{label}' (get_by_text)")
+                    time.sleep(2)
                     return True
             except Exception:
                 continue
 
-        # Try clicking by text content matching the letter
-        try:
-            choices = self.page.query_selector_all('[class*="choice"], [class*="option"], label')
-            if index < len(choices):
-                choices[index].click()
-                log.info(f"  Clicked choice {letter} (index {index})")
-                return True
-        except Exception:
-            pass
-
+        log.info("  ⚠️ No Continue/OK button found")
         return False
 
     # ─── Submit & Navigate ──────────────────────────────────────────
 
     def submit(self):
-        """Click the submit/check/next button."""
+        """
+        Click the submit/check button.
+
+        Never hangs: each selector has a 2-second timeout.
+        Falls back to JS coordinate scan, then Enter key.
+        Does NOT call wait_for_load_state (that was the hang source).
+        """
         submit_selectors = [
+            'button:has-text("Check")',
             'button:has-text("Entregar actividad")',
             'button:has-text("Entregar")',
-            'button:has-text("Check")',
             'button:has-text("Submit")',
-            'button:has-text("Next")',
-            'button:has-text("Continue")',
+            'button:has-text("Verificar")',
             'button[class*="submit"]',
             'button[class*="check"]',
             'input[type="submit"]',
@@ -1483,133 +1067,248 @@ class AleksBrowser:
 
         for selector in submit_selectors:
             try:
-                btn = self.page.wait_for_selector(selector, timeout=3000)
+                btn = self.page.wait_for_selector(selector, timeout=2_000)
                 if btn and btn.is_visible():
-                    btn.click()
+                    btn.click(timeout=3_000)
                     log.info(f"  Submitted via: {selector}")
-                    self.page.wait_for_load_state("networkidle")
-                    time.sleep(2)
+                    time.sleep(1.5)
                     return
             except Exception:
                 continue
 
-        log.warning("  No submit button found")
+        # JS coordinate fallback
+        submit_hints = ["Check", "Verificar", "Submit", "Entregar", "Aceptar"]
+        coord = self.page.evaluate("""
+            (hints) => {
+                const els = Array.from(document.querySelectorAll(
+                    'button, input[type="submit"], input[type="button"], [role="button"]'
+                ));
+                for (const el of els) {
+                    if (!el.offsetParent) continue;
+                    const r = el.getBoundingClientRect();
+                    if (r.width < 5 || r.height < 5) continue;
+                    const t = (el.textContent || el.value || '').trim();
+                    for (const h of hints) {
+                        if (t.toLowerCase().includes(h.toLowerCase()))
+                            return { x: r.left + r.width/2, y: r.top + r.height/2 };
+                    }
+                }
+                return null;
+            }
+        """, submit_hints)
+
+        if coord:
+            self.page.mouse.click(coord["x"], coord["y"])
+            log.info(f"  Submitted via JS coord ({coord['x']:.0f},{coord['y']:.0f})")
+            time.sleep(1.5)
+            return
+
+        # Last resort
+        log.warning("  No submit button found — pressing Enter")
+        self.page.keyboard.press("Enter")
+        time.sleep(1.5)
 
     def check_result(self) -> str:
         """
-        Check if the submitted answer was correct or incorrect.
+        Screenshot-based result check after submitting an answer.
 
-        ALEKS signals correct by turning the question number green.
-        We detect this via:
-          1. A green-colored question number element
-          2. CSS classes that contain 'correct' / 'wrong' / 'incorrect'
-          3. A checkmark icon appearing next to the question number
+        Takes a tmp screenshot, checks the banner area for:
+          GREEN icon → correct
+          RED icon   → incorrect
+          Neither    → unknown
+
+        Uses the same pixel analysis as should_skip_question.
         """
-        time.sleep(1.5)  # Give ALEKS time to evaluate and update the UI
+        from PIL import Image
+        from pathlib import Path
 
-        # Fast path: ALEKS shows explicit "Correct" / "Incorrect" text in a banner
+        time.sleep(2)  # Give ALEKS time to evaluate and show result
+
+        tmp_path = Path(__file__).parent / "screenshots" / "_result_check.png"
+
         try:
-            if self.page.query_selector('text="Correct"') or \
-               self.page.query_selector('text="Correcto"'):
+            self.page.screenshot(path=str(tmp_path))
+            img = Image.open(tmp_path).convert("RGB")
+            width, height = img.size
+
+            # Check banner area (where Correct/Incorrect icon appears)
+            banner_top = int(height * 0.28)
+            banner_bottom = int(height * 0.52)
+            banner_right = int(width * 0.25)
+
+            green_count = 0
+            red_count = 0
+            total = 0
+
+            for y in range(banner_top, banner_bottom, 2):
+                for x in range(10, banner_right, 2):
+                    r, g, b = img.getpixel((x, y))
+                    total += 1
+                    if g > 100 and g > r * 1.2 and g > b:
+                        green_count += 1
+                    if r > 150 and r > g * 1.5 and r > b * 1.3:
+                        red_count += 1
+
+            green_pct = (green_count / total * 100) if total > 0 else 0
+            red_pct = (red_count / total * 100) if total > 0 else 0
+
+            print(f"\033[1;33m  │ Result check: green={green_pct:.1f}%  red={red_pct:.1f}%\033[0m")
+
+            if green_pct > 0.5:
                 return "correct"
-            if self.page.query_selector('text="Incorrect"') or \
-               self.page.query_selector('text="Incorrecto"'):
+            if red_pct > 0.5:
                 return "incorrect"
-        except Exception:
-            pass
 
-        try:
-            result = self.page.evaluate("""
-                () => {
-                    // 1. Green question-number indicator
-                    //    ALEKS wraps the current question number in a styled element.
-                    //    When correct it gets a green background or green text color.
-                    const allEls = Array.from(document.querySelectorAll('*'));
+            # Fallback: check body text
+            try:
+                import re
+                body_text = self.page.evaluate(
+                    "() => (document.body.innerText || '').substring(0, 3000)"
+                )
+                if re.search(r'\bCorrect\b', body_text) or re.search(r'\bCorrecto\b', body_text):
+                    if not re.search(r'correct\s+answer', body_text, re.IGNORECASE):
+                        return "correct"
+                if re.search(r'\bIncorrect\b', body_text) or re.search(r'\bIncorrecto\b', body_text):
+                    return "incorrect"
+            except Exception:
+                pass
 
-                    for (const el of allEls) {
-                        const style = window.getComputedStyle(el);
-                        const bg = style.backgroundColor || '';
-                        const color = style.color || '';
-                        const cls = (el.className || '').toLowerCase();
-                        const id  = (el.id || '').toLowerCase();
+            return "unknown"
 
-                        // Green background or text = correct
-                        if (bg.includes('0, 128') || bg.includes('34, 139') ||
-                            bg.includes('0, 153') || bg.includes('76, 175') ||
-                            color.includes('0, 128') || color.includes('0, 153')) {
-                            return 'correct';
-                        }
+        except Exception as e:
+            log.warning(f"  [check_result] Screenshot check failed: {e}")
+            return "unknown"
 
-                        // Red background or text = incorrect
-                        if (bg.includes('255, 0') || bg.includes('220, 53') ||
-                            bg.includes('255, 59') || bg.includes('198, 40') ||
-                            color.includes('255, 0') || color.includes('220, 53')) {
-                            return 'incorrect';
-                        }
+        finally:
+            try:
+                if tmp_path.exists():
+                    tmp_path.unlink()
+            except Exception:
+                pass
 
-                        // CSS class names
-                        if (cls.includes('correct') || cls.includes('success') ||
-                            id.includes('correct') || id.includes('success')) {
-                            return 'correct';
-                        }
-                        if (cls.includes('incorrect') || cls.includes('wrong') ||
-                            cls.includes('error') || id.includes('wrong')) {
-                            return 'incorrect';
+    def click_next(self, current_question_num: int = 0):
+        """
+        Advance to the next question.
+
+        Strategy order:
+          1. Text-based "Siguiente/Next/Continue" button (works after correct answers)
+          2. The > arrow button in the question navigation bar
+          3. Click the next question-number bubble directly (most reliable after incorrect)
+          4. Keyboard ArrowRight on the nav area (last resort)
+
+        Pass current_question_num so strategy 3 can click bubble N+1 directly.
+        """
+        NEXT_LABELS = [
+            'siguiente', 'continuar', 'next', 'continue',
+            'ok', 'aceptar', 'avanzar',
+            'siguiente pregunta', 'next question',
+        ]
+
+        # ── Strategy 1: click the explicit next question-number bubble directly ───────
+        # This keeps the UI perfectly synchronized with the python loop.
+        # It avoids the "off-by-one" desync caused by ALEKS auto-advancing.
+        if current_question_num > 0:
+            next_num = current_question_num + 1
+            bubble_clicked = self.page.evaluate("""
+                (nextNum) => {
+                    const all = Array.from(document.querySelectorAll(
+                        'button, [role="button"], span, li, td, div'
+                    ));
+                    for (const el of all) {
+                        const t = (el.textContent || '').trim();
+                        if (t === String(nextNum) && el.offsetParent !== null) {
+                            const r = el.getBoundingClientRect();
+                            // Bubbles are at the top nav header, usually r.top < 150
+                            if (r.top < 200 && r.width < 100 && r.height < 100 && r.width > 5) {
+                                el.click();
+                                return true;
+                            }
                         }
                     }
-                    return 'unknown';
+                    return false;
                 }
-            """)
-            if result in ("correct", "incorrect"):
-                return result
-        except Exception:
-            pass
+            """, next_num)
+            if bubble_clicked:
+                log.info(f"  Advanced explicitly to question bubble {next_num}")
+                time.sleep(2)
+                return
 
-        return "unknown"
-
-    def click_next(self):
-        """
-        Click the Next / Siguiente button to advance to the next question.
-
-        After a correct answer ALEKS shows a "Siguiente" (or "Next") button
-        to move to the next problem. We wait for it to appear then click it.
-        """
-        # Use JS to find any button/link whose visible text matches continue/next labels
+        # ── Strategy 2: text-based button (fallback if bubble isn't found) ──────────────
         clicked = self.page.evaluate("""
-            () => {
-                const labels = [
-                    'continue', 'continuar', 'siguiente', 'next', 'next question'
-                ];
-                const els = Array.from(document.querySelectorAll('button, a'));
-                for (const el of els) {
-                    const t = (el.textContent || '').trim().toLowerCase();
-                    if (labels.includes(t) && el.offsetParent !== null) {
+            (labels) => {
+                const clickable = Array.from(
+                    document.querySelectorAll('button, a, input[type="submit"], div[role="button"]')
+                );
+                for (const el of clickable) {
+                    const t = (el.textContent || el.value || '').trim().toLowerCase();
+                    if (labels.some(l => t === l || t.startsWith(l)) && el.offsetParent !== null) {
                         el.click();
                         return t;
                     }
                 }
                 return null;
             }
-        """)
-
+        """, NEXT_LABELS)
         if clicked:
-            log.info(f"  Clicked next button: '{clicked}'")
+            log.info(f"  Advanced via text button: '{clicked}'")
             time.sleep(2)
             return
 
-        # Playwright fallback for each label
-        for text in ["Continue", "Continuar", "Siguiente", "Next"]:
+        # ── Strategy 3: > arrow button in the question nav bar ───────────────
+        arrow_clicked = self.page.evaluate("""
+            () => {
+                const candidates = Array.from(document.querySelectorAll('button, [role="button"]'));
+                for (const el of candidates) {
+                    const t = (el.textContent || '').trim();
+                    const lbl = (el.getAttribute('aria-label') || '').toLowerCase();
+                    const cls = (el.className || '').toLowerCase();
+                    if ((t === '>' || t === '›' || t === '→' || t === '▶' ||
+                         lbl.includes('next') || lbl.includes('siguiente') ||
+                         cls.includes('next-arrow') || cls.includes('nextarrow') ||
+                         cls.includes('nav-next') || cls.includes('arrow-right'))
+                        && el.offsetParent !== null) {
+                        el.click();
+                        return true;
+                    }
+                }
+                return false;
+            }
+        """)
+        if arrow_clicked:
+            log.info("  Advanced via > nav arrow")
+            time.sleep(2)
+            return
+
+        # ── Strategy 4: Playwright role-based buttons ─────────────────────────
+        for text in ["Siguiente", "Continuar", "Next", "Continue", "OK", "Aceptar", "Avanzar"]:
             try:
-                btn = self.page.get_by_role("button", name=text, exact=False)
-                if btn.is_visible():
+                btn = self.page.get_by_role("button", name=text, exact=False).first
+                if btn and btn.is_visible():
                     btn.click()
-                    log.info(f"  Clicked next via role: {text}")
+                    log.info(f"  Advanced via role button: '{text}'")
                     time.sleep(2)
                     return
             except Exception:
                 continue
 
-        log.warning("  No 'Next' button found")
+        # ── Strategy 5: CSS selectors ──────────────────────────────────────────
+        for selector in [
+            'button.next_button', 'button[class*="next"]', 'button[class*="siguiente"]',
+            'a.next_button', 'a[class*="next"]',
+            'input[type="submit"][value*="next" i]',
+            'input[type="submit"][value*="siguiente" i]',
+        ]:
+            try:
+                el = self.page.query_selector(selector)
+                if el and el.is_visible():
+                    el.click()
+                    log.info(f"  Advanced via selector: {selector}")
+                    time.sleep(2)
+                    return
+            except Exception:
+                continue
+
+        log.warning(f"  Could not advance from question {current_question_num} — all strategies failed")
 
 
 class AutomationError(Exception):

@@ -19,8 +19,16 @@ import time
 from datetime import datetime
 
 import config
-from solver import Solver
+from chatbot_solver import ChatbotSolver
 from browser import AleksBrowser, AutomationError
+
+def _build_solver(browser=None):
+    """
+    Instantiate the chatbot solver.
+    """
+    if browser is None:
+        raise RuntimeError("ChatbotSolver requires a running browser instance.")
+    return ChatbotSolver(browser)
 
 
 # ─── Console Logger ─────────────────────────────────────────────
@@ -121,25 +129,47 @@ def main():
     print("   ALEKS AutoSolver — Human-Free Mode")
     print("=" * 50 + "\033[0m\n")
 
-    # Step 1: Credentials (never saved to disk)
+    # ── Step 1: Ask ALL questions before touching the browser ────────
+
+    # 1a. Credentials
+    DEFAULT_USERNAME = "GGarcia16990"
+    DEFAULT_PASSWORD = "Cls12Loe"
+
+    print("\033[90m(Press Enter on both fields to use the default account)\033[0m")
     username = input("\033[1mALEKS Username: \033[0m").strip()
     password = getpass.getpass("\033[1mALEKS Password: \033[0m")
 
-    if not username or not password:
-        print("\033[91mUsername and password are required.\033[0m")
+    if not username and not password:
+        username = DEFAULT_USERNAME
+        password = DEFAULT_PASSWORD
+        print(f"\033[90mUsing default account: {DEFAULT_USERNAME}\033[0m")
+    elif not username or not password:
+        print("\033[91mProvide both username and password, or leave both blank for default.\033[0m")
         sys.exit(1)
 
-    # Initialize modules
-    solver = Solver()
+    # 1b. Semester
+    select_semester()
+
+    # 1c. Activities
+    activities = select_activities()
+
+    print(f"\n\033[92m✓ All set — launching browser now...\033[0m\n")
+
+    # ── Step 2: Now run everything automatically ──────────────────────
+
     browser = AleksBrowser()
+    solver  = None          # built after browser.launch() (chatbot needs it)
 
     # Track results
     all_results = []
     start_time = time.time()
 
     try:
-        # Step 2: Launch browser and login
         browser.launch()
+
+        # Build solver here so chatbot mode can open a tab in the live context
+        solver = _build_solver(browser)
+
         log.info("=" * 40)
         log.info("PHASE 1: Authentication")
         log.info("=" * 40)
@@ -149,7 +179,6 @@ def main():
         password = "x" * len(password)
         del password
 
-        # Step 3: Select active class
         log.info("")
         log.info("=" * 40)
         log.info("PHASE 1.5: Class Selection")
@@ -165,11 +194,6 @@ def main():
         log.info(f"Auto-selecting: {active_classes[0]['name']}")
         browser.select_class(0, class_name=active_classes[0]['name'])
 
-        # Step 4: Select semester (after login + class selection)
-        select_semester()
-
-        # Step 5: Select activities
-        activities = select_activities()
         log.info(f"Selected {len(activities)} activities: {activities}")
 
         # Step 6: Process each activity
@@ -198,11 +222,38 @@ def main():
                     log.info(f"No more questions in {activity_name}")
                     break
 
-                # Skip if already answered correctly (green number or Correct banner)
-                if browser.is_already_correct():
-                    log.info(f"── Question {question_num} already correct ✅ — skipping")
-                    browser.click_next()
+                # ── DOUBLE CONFIRMATION ───────────────────────────────────────
+                # Step 1: check bubble color
+                bubble = browser.get_bubble_status(question_num)
+
+                if bubble == 'correct':
+                    # GREEN — confirmed correct, move on immediately
+                    log.info(f"── Q{question_num}: correct ✓ ⏭️")
+                    browser.press_continue()
+                    browser.click_next(question_num)
+                    time.sleep(1)
                     continue
+
+                elif bubble == 'incorrect':
+                    # RED — second confirmation: check if the correct answer is revealed
+                    if browser.is_correct_answer_shown():
+                        # ALEKS is showing the correct answer → question is dead.
+                        # The page has a "Continue" button, not a nav bubble — use press_continue.
+                        log.info(f"── Q{question_num}: exhausted (correct answer shown) ⏭️")
+                        browser.press_continue()
+                        time.sleep(1)
+                        continue
+                    else:
+                        # Correct answer NOT shown → still has attempts, solve it
+                        page_q_num = browser.get_current_question_number()
+                        if page_q_num > 0 and page_q_num != question_num:
+                            log.info(f"  Syncing Q counter: {question_num} → {page_q_num}")
+                            question_num = page_q_num
+                        log.info(f"── Q{question_num}: incorrect — retrying")
+
+                else:
+                    # TEAL / active — unanswered, solve on first attempt
+                    log.info(f"── Q{question_num}: active — solving first attempt")
 
                 # Read question
                 log.info(f"── Question {question_num} ──")
@@ -210,65 +261,81 @@ def main():
 
                 if not question_text:
                     log.warning("Empty question, skipping...")
-                    browser.click_next()
+                    browser.click_next(question_num)
                     continue
 
-                topic = activity_name.split(" - ")[1] if " - " in activity_name else ""
-                wrong_answers = []
-                result = "unknown"
+                semester_label = config.SEMESTERS[config.SEMESTER][0]
+                topic_name = activity_name.split(" - ")[1] if " - " in activity_name else activity_name
+                topic = (
+                    f"ALEKS Math Course — {semester_label}\n"
+                    f"Activity: {activity_name}\n"
+                    f"Subject: {topic_name}\n"
+                    f"IMPORTANT: This is a PURE MATH problem. "
+                    f"Solve it using algebra/trigonometry only. "
+                    f"Do NOT apply physics laws or derive formulas from scratch — "
+                    f"treat every equation in the question as a given math formula to evaluate."
+                )
+                # Use absolute paths to prevent CWD issues
+                from pathlib import Path as _Path
+                screenshots_dir = _Path(__file__).parent / "screenshots"
+                screenshots_dir.mkdir(exist_ok=True)
+                screenshot_path = screenshots_dir / f"q{question_num}.png"
 
-                # Retry loop: up to 3 attempts per question
-                for attempt in range(1, 4):
-                    if wrong_answers:
-                        retry_context = (
-                            f"Topic: {topic}\n\n"
-                            f"FULL QUESTION:\n{question_text}\n\n"
-                            f"Previously WRONG answers — do NOT repeat: {', '.join(wrong_answers)}\n"
-                            f"Give a DIFFERENT correct answer."
-                        )
-                        answer = solver.solve(
-                            question_text + f"__retry{len(wrong_answers)}",
-                            context=retry_context,
-                        )
-                    else:
-                        answer = solver.solve(question_text, context=topic)
+                # Take a screenshot for the vision AI
+                browser.page.screenshot(path=str(screenshot_path))
 
-                    log.info(f"  A (attempt {attempt}): {answer}")
+                # Ask the AI
+                answer, _ = solver.solve_from_screenshot(
+                    image_path=screenshot_path,
+                    dom_text=question_text,
+                    context=topic,
+                )
 
-                    browser.input_answer(answer)
-                    browser.submit()
+                log.info(f"  AI Answer: {answer}")
 
-                    result = browser.check_result()
-                    status_icon = {"correct": "✅", "incorrect": "❌"}.get(result, "❓")
-                    log.info(f"  Result: {status_icon} {result}")
+                # ── Input the answer into ALEKS ───────────────────────
+                input_ok = browser.input_answer(answer)
+                if not input_ok:
+                    log.warning(f"  Q{question_num}: input layer returned False — skipping submit")
+                    all_results.append({
+                        "activity":     activity_name,
+                        "question_num": question_num,
+                        "question":     question_text[:200],
+                        "answer":       answer,
+                        "result":       "input_failed",
+                        "timestamp":    datetime.now().isoformat(),
+                    })
+                    browser.click_next(question_num)
+                    time.sleep(1)
+                    continue
 
-                    if result == "correct":
-                        break
+                # ── Screenshot before submitting ──────────────────────
+                input_q_dir = _Path(__file__).parent / "input_question"
+                input_q_dir.mkdir(exist_ok=True)
+                browser.page.screenshot(
+                    path=str(input_q_dir / f"q{question_num}_input.png")
+                )
 
-                    if result == "incorrect":
-                        wrong_answers.append(answer)
-                        solver.bust_cache(question_text)
-                        browser.clear_answer()
-                        log.info(f"  Wrong — retrying (attempt {attempt + 1}/3)")
-                        time.sleep(1)
-                    else:
-                        break  # unknown — move on
+                # ── Submit ────────────────────────────────────────────
+                browser.submit()
+                time.sleep(1.5)
 
-                # Record final result
+                # ── Check result ──────────────────────────────────────
+                result = browser.check_result()
+                log.info(f"  Q{question_num}: {result}")
+
                 all_results.append({
-                    "activity": activity_name,
+                    "activity":     activity_name,
                     "question_num": question_num,
-                    "question": question_text[:200],
-                    "answer": answer,
-                    "result": result,
-                    "attempts": len(wrong_answers) + 1,
-                    "timestamp": datetime.now().isoformat(),
+                    "question":     question_text[:200],
+                    "answer":       answer,
+                    "result":       result,
+                    "timestamp":    datetime.now().isoformat(),
                 })
 
-                # Move to next question
-                if result != "unknown":
-                    browser.click_next()
-                    time.sleep(1)
+                # Advance to next question
+                browser.click_next(question_num)
+                time.sleep(1)
 
     except KeyboardInterrupt:
         log.warning("\nStopped by user (Ctrl+C)")
@@ -279,34 +346,36 @@ def main():
         log.error(f"Unexpected error: {e}")
         browser.screenshot("crash")
     finally:
+        # Close chatbot tab first (if open), then the main browser
+        if solver is not None and hasattr(solver, "close"):
+            solver.close()
         browser.close()
 
     # ─── Final Report ───────────────────────────────────────────
     elapsed = time.time() - start_time
-    stats = solver.stats
+    stats = solver.stats if solver is not None else {
+        "api_calls": 0, "total_tokens": 0
+    }
 
     print("\n")
     print("\033[1;96m" + "=" * 50)
     print("   SESSION REPORT")
     print("=" * 50 + "\033[0m\n")
 
-    total = len(all_results)
-    correct = sum(1 for r in all_results if r["result"] == "correct")
-    incorrect = sum(1 for r in all_results if r["result"] == "incorrect")
-    unknown = total - correct - incorrect
+    total       = len(all_results)
+    correct     = sum(1 for r in all_results if r["result"] == "correct")
+    incorrect   = sum(1 for r in all_results if r["result"] == "incorrect")
+    failed_inp  = sum(1 for r in all_results if r["result"] == "input_failed")
+    unknown     = total - correct - incorrect - failed_inp
 
-    print(f"  \033[1mQuestions solved:\033[0m  {total}")
-    print(f"  \033[92m✅ Correct:\033[0m         {correct}")
-    print(f"  \033[91m❌ Incorrect:\033[0m       {incorrect}")
-    print(f"  \033[93m❓ Unknown:\033[0m         {unknown}")
-    if total > 0:
-        print(f"  \033[1mSuccess rate:\033[0m      {correct / total * 100:.1f}%")
+    print(f"  \033[1mQuestions processed:\033[0m  {total}")
+    print(f"  \033[92m✅ Correct:\033[0m           {correct}")
+    print(f"  \033[91m❌ Incorrect:\033[0m         {incorrect}")
+    print(f"  \033[93m⚠️  Input failed:\033[0m     {failed_inp}")
+    print(f"  \033[90m❔ Unknown:\033[0m           {unknown}")
     print()
-    print(f"  \033[1mOllama calls:\033[0m      {stats['api_calls']}")
-    print(f"  \033[1mCache hits:\033[0m        {stats['cache_hits']}")
-    print(f"  \033[1mTokens generated:\033[0m  {stats['total_tokens']:,}")
-    print(f"  \033[1mCached answers:\033[0m    {stats['cached_answers']}")
-    print(f"  \033[1mModel:\033[0m             {config.OLLAMA_MODEL}")
+    print(f"  \033[1mAI calls:\033[0m          {stats['api_calls']}")
+    print(f"  \033[1mModel:\033[0m             gemini (browser chatbot)")
     print(f"  \033[1mTime elapsed:\033[0m      {elapsed:.0f}s ({elapsed / 60:.1f}min)")
     print()
 
@@ -316,13 +385,11 @@ def main():
         print("  \033[1mPer Activity:\033[0m")
         for act in activities_seen:
             act_results = [r for r in all_results if r["activity"] == act]
-            act_correct = sum(1 for r in act_results if r["result"] == "correct")
             short_name = act.split(" - ")[1] if " - " in act else act
-            print(f"    {short_name}: {act_correct}/{len(act_results)} correct")
+            print(f"    {short_name}: {len(act_results)} questions processed")
         print()
 
-    print("\033[2mResults cached in answer_cache.json for future runs\033[0m")
-    print("\033[2mScreenshots saved in screenshots/ on errors\033[0m\n")
+    print("\033[2mScreenshots saved in screenshots/\033[0m\n")
 
 
 if __name__ == "__main__":

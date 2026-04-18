@@ -6,101 +6,64 @@ config.py — ALEKS AutoSolver configuration.
 ALEKS_URL = "https://latam.aleks.com"
 ALEKS_LOGIN_URL = "https://latam.aleks.com/login"
 
-# ─── Ollama (Local AI) ──────────────────────────────────────────
-OLLAMA_BASE_URL = "http://localhost:11434"
-OLLAMA_MODEL = "mightykatun/qwen2.5-math:7b"  # Math-specialized solver
-OLLAMA_VISION_MODEL = "llava:latest"           # Vision model for reading screenshots
+SYSTEM_PROMPT = """\
+You are an ALEKS math solver. Analyze the screenshot and return ONLY a JSON object describing the answer.
+No explanation, no steps, no markdown code fences — just the raw JSON object.
 
-# Model generation parameters — tuned for precise math answers
-OLLAMA_OPTIONS = {
-    "temperature":    0.1,    # Fully deterministic — math has one right answer
-    "top_p":          0.9,
-    "top_k":          20,     # Restrict sampling to top-20 tokens only
-    "repeat_penalty": 1.1,    # Avoid repetitive output
-    "num_predict":    512,     # Short answers only — no explanations needed
-    "num_ctx":        4096,    # Enough context for long questions
-}
+ANSWER FORMAT RULES (pick the type that matches the answer):
 
-# Legacy aliases (used in a few places)
-OLLAMA_TEMPERATURE = 0.1
-OLLAMA_NUM_PREDICT = 512
+1. Simple number, variable, or plain expression:
+   {"type": "simple", "value": "42"}
+   {"type": "simple", "value": "-3.5"}
+   {"type": "simple", "value": "x + 3"}
+   {"type": "simple", "value": "x > 3"}
+   {"type": "simple", "value": "[-2, 5)"}
 
-SYSTEM_PROMPT = (
-    "You are a math answer extractor for ALEKS. "
-    "RULES — follow exactly:\n"
-    "- Output THE FINAL ANSWER ONLY. One line. Nothing else.\n"
-    "- NO steps, NO reasoning, NO explanation, NO 'therefore', NO 'the answer is'.\n"
-    "- DO NOT show your work. DO NOT write sentences.\n"
-    "- If the answer is a number: write just the number (e.g. 3.14)\n"
-    "- If a fraction: write it as a/b (e.g. 3/4)\n"
-    "- If multiple choice: write just the letter (e.g. B)\n"
-    "- If an expression: write just the expression (e.g. 4x+3)\n"
-    "WRONG: 'The answer is 3.14 because...'\n"
-    "RIGHT: 3.14\n\n"
+2. Fraction (a/b):
+   {"type": "fraction", "numerator": "3", "denominator": "4"}
 
-    "CRITICAL — TRIGONOMETRY: Always compute trig functions (sin, cos, tan, etc.) in RADIANS. "
-    "Never use degrees unless the problem explicitly states degrees (°). "
-    "When you see expressions like (3π/7), treat them as radian values.\n\n"
+3. Square root:
+   {"type": "sqrt", "radicand": "16"}
+   {"type": "sqrt", "radicand": "x + 4"}
 
-    "EXACT ALEKS INPUT FORMATS (the automation types these character-by-character):\n\n"
+4. Exponent (base^exp):
+   {"type": "exponent", "base": "x", "exponent": "2"}
+   {"type": "exponent", "base": "2", "exponent": "n+1"}
 
-    "1. DECIMAL number: just the number, rounded as instructed (e.g. 4.93 or -5 or 12.8)\n"
-    "2. FRACTION: numerator/denominator — no spaces (e.g. 3/4 or -1/9 or 15/7)\n"
-    "3. MULTIPLE CHOICE: just the single letter (e.g. B)\n"
-    "4. EXPRESSION: use ^ for exponents, * for multiply (e.g. 4x+3 or x^2-5x+6)\n"
-    "5. INTERVAL NOTATION: use parentheses/brackets and U for union (e.g. (-inf,2)U(2,inf))\n"
-    "6. EQUATION: write full equation (e.g. y=2x+1 or x^2+y^2=25)\n"
-    "7. MIXED NUMBER: write as whole+fraction (e.g. 3 1/2 means 3 and 1/2)\n\n"
+5. Mixed number (whole + fraction):
+   {"type": "mixed", "whole": "2", "numerator": "3", "denominator": "5"}
 
-    "5. FUNCTION OPERATIONS (f+g, f-g, f*g, fog):\n"
-    "   - Compute algebraically, return simplified expression\n"
-    "   - For (f-g)(2): evaluate each function at 2, then subtract\n\n"
+6. Complex expression combining multiple operations — use expression notation:
+   {"type": "expression", "value": "3/4 + sqrt(x^2 - 4)"}
+   {"type": "expression", "value": "2*pi*sqrt(5)"}
+   Notation rules for expression values:
+     / for fractions, sqrt(...) for roots, ^ for exponents,
+     pi for π, sin/cos/tan for trig, | | for absolute value
 
-    "6. INVERSE FUNCTION: isolate the input variable, return expression for x\n\n"
+7. Graph (plot points on a coordinate grid):
+   {"type": "graph", "points": [[x1, y1], [x2, y2]]}
+   Include key points: intercepts, vertices, turning points, endpoints.
+   For a line: provide exactly 2 points on that line.
+   For a parabola/curve: provide 3–5 key points.
 
-    "7. DOMAIN/RANGE from graph:\n"
-    "   - Domain: read left→right, skip vertical asymptotes\n"
-    "   - Range: read bottom→top, skip horizontal asymptotes\n"
-    "   - Use interval notation: (-inf,2)U(2,inf)\n\n"
+IMPORTANT:
+- If the answer is just a single integer like 5, output: {"type": "simple", "value": "5"}
+- If the answer contains a fraction AND other terms, use type "expression"
+- Always use standard decimal notation for decimals (e.g. "0.75" not "75/100")
+- For trig: sin(x), cos(x), tan(x) — use parentheses
+- For pi: write "pi" (not "3.14159")
+"""
 
-    "8. LOGARITHM problems:\n"
-    "   - Expand: log(x^3*z) → 3log(x)+log(z)\n"
-    "   - Compress: combine into single log\n"
-    "   - Solve log(f(x))=log(g(x)): set f(x)=g(x) and solve\n"
-    "   - Convert: log_b(x)=n ↔ b^n=x\n\n"
+# ─── Chatbot Browser Tab (auto-mcgraw approach) ─────────────────
+# The script opens ChatGPT/Gemini/DeepSeek in a browser tab.
+# You must be logged in to the provider before running.
+CHATBOT_PROVIDER = "gemini"    # "chatgpt" | "gemini" | "deepseek"
 
-    "9. GRAPH MATCHING (rational/exponential functions):\n"
-    "   - Find vertical asymptotes (denominator=0), horizontal asymptote (degree comparison)\n"
-    "   - Find y-intercept (x=0), identify which graph matches\n"
-    "   - Return: the graph label letter (e.g., C)\n\n"
-
-    "10. CONIC SECTIONS:\n"
-    "    - Same signs on x² and y² → circle or ellipse\n"
-    "    - Opposite signs → hyperbola\n"
-    "    - Only one squared variable → parabola\n"
-    "    - Complete the square to find center/vertex\n"
-    "    - Circle: (x-h)²+(y-k)²=r²\n"
-    "    - Parabola from vertex (h,k) and directrix: (y-k)²=4p(x-h) or (x-h)²=4p(y-k)\n\n"
-
-    "11. SIMPLE GRAPH (single curve): return JSON:\n"
-    '    {"type":"graph","asymptotes":[x1,x2],"points":[[x,y],...],"tool":"curve"}\n'
-    "    - tool: 'curve'(parabola), 'line', 'ray'(semi-recta), 'segment', 'point'\n"
-    "    - For EXPONENTIAL graphs: always evaluate at x=-2,-1,0,1,2 (ALEKS standard)\n"
-    "    - asymptotes: x-values of vertical asymptotes ([] if none)\n\n"
-
-    "12. PIECEWISE GRAPH: return JSON with 'piecewise' array:\n"
-    '    {"type":"graph","piecewise":[\n'
-    '      {"tool":"curve","points":[[0,10],[4,-6]],"crop":[-4,4],\n'
-    '       "endpoints":[{"x":-4,"y":6,"closed":true},{"x":4,"y":-6,"closed":false}]},\n'
-    '      {"tool":"ray","points":[[4,-6],[5,-9]],\n'
-    '       "endpoints":[{"x":4,"y":-6,"closed":true}]}\n'
-    "    ]}\n"
-    "    - crop:[x_min,x_max] = domain limit for that piece (use scissors/tijera tool)\n"
-    "    - closed:true = filled dot (≤,≥); closed:false = open dot (<,>)\n"
-    "    - For isolated single points: tool='point', one entry in points, closed:true if =\n"
-    "    - Use decimal approximations to 2 decimal places\n"
-)
-
+# ─── Humanization Delay ────────────────────────────────────────
+# Random pause (seconds) inserted between solver returning an answer
+# and the browser submitting it.  Looks more human, avoids detection.
+HUMANIZE_DELAY_MIN = 0.5   # seconds
+HUMANIZE_DELAY_MAX = 0.5   # seconds
 
 # ─── ALEKS Activities (by Semester) ─────────────────────────────
 # Each semester maps activity numbers → activity names.
@@ -229,6 +192,6 @@ CLASS_SEMESTER_PATTERNS = {
 
 # ─── Browser Settings ───────────────────────────────────────────
 HEADLESS = False          # Set True to run without visible browser
-SLOW_MO = 800             # Milliseconds between actions (looks more human)
+SLOW_MO = 50              # Milliseconds between actions (looks more human)
 TIMEOUT = 30000           # Max wait for elements (ms)
 SCREENSHOT_ON_ERROR = True
