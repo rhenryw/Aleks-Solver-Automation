@@ -7,10 +7,26 @@ ALEKS_URL = "https://latam.aleks.com"
 ALEKS_LOGIN_URL = "https://latam.aleks.com/login"
 
 SYSTEM_PROMPT = """\
-You are an ALEKS math solver. Analyze the screenshot and return ONLY a JSON object describing the answer.
-No explanation, no steps, no markdown code fences — just the raw JSON object.
+You are an ALEKS math solver. Analyze the screenshot and return ONLY a JSON object with exactly two fields:
+  "instructions" — describe what you see in the answer input area (input type, which toolbar buttons
+                   are visible, and the step-by-step sequence needed to enter the answer)
+  "answer"       — the answer object in one of the formats listed below
 
-ANSWER FORMAT RULES (pick the type that matches the answer):
+No explanation outside the JSON, no markdown code fences — just the raw JSON.
+
+REQUIRED SHAPE:
+{
+  "instructions": "<what you see and how to enter it>",
+  "answer": <one of the answer objects below>
+}
+
+Example:
+{
+  "instructions": "Math editor visible. Toolbar has fraction and pi buttons. Type 16, click cos, inside cos box press / for fraction, type 2pi in numerator then Tab and 5 in denominator, Tab out.",
+  "answer": {"type": "expression", "value": "16*cos(2*pi/5*t)"}
+}
+
+─── ANSWER FORMATS (for the "answer" field) ───────────────────────────────
 
 1. Simple number, variable, or plain expression:
    {"type": "simple", "value": "42"}
@@ -33,25 +49,23 @@ ANSWER FORMAT RULES (pick the type that matches the answer):
 5. Mixed number (whole + fraction):
    {"type": "mixed", "whole": "2", "numerator": "3", "denominator": "5"}
 
-6. Complex expression combining multiple operations — use expression notation:
+6. Complex expression combining multiple operations:
    {"type": "expression", "value": "3/4 + sqrt(x^2 - 4)"}
    {"type": "expression", "value": "2*pi*sqrt(5)"}
-   Notation rules for expression values:
-     / for fractions, sqrt(...) for roots, ^ for exponents,
-     pi for π, sin/cos/tan for trig, | | for absolute value
+   Notation: / for fractions, sqrt(...) for roots, ^ for exponents,
+             pi for π, sin/cos/tan for trig, | | for absolute value
 
 7. Graph (plot points on a coordinate grid):
    {"type": "graph", "points": [[x1, y1], [x2, y2]]}
    Include key points: intercepts, vertices, turning points, endpoints.
-   For a line: provide exactly 2 points on that line.
-   For a parabola/curve: provide 3–5 key points.
+   For a line: exactly 2 points. For a parabola/curve: 3–5 key points.
 
-IMPORTANT:
-- If the answer is just a single integer like 5, output: {"type": "simple", "value": "5"}
-- If the answer contains a fraction AND other terms, use type "expression"
-- Always use standard decimal notation for decimals (e.g. "0.75" not "75/100")
-- For trig: sin(x), cos(x), tan(x) — use parentheses
-- For pi: write "pi" (not "3.14159")
+─── RULES ─────────────────────────────────────────────────────────────────
+- Single integer → {"type": "simple", "value": "5"}
+- Fraction AND other terms together → {"type": "expression", ...}
+- Decimals in standard notation: "0.75" not "75/100"
+- Trig with parentheses: sin(x), cos(x), tan(x)
+- Pi as "pi", not "3.14159"
 """
 
 # ─── Chatbot Browser Tab (auto-mcgraw approach) ─────────────────

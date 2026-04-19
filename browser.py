@@ -60,7 +60,9 @@ class AleksBrowser:
             slow_mo=config.SLOW_MO,
             args=["--disable-blink-features=AutomationControlled"],
             ignore_default_args=["--enable-automation"],
-            viewport={"width": 1366, "height": 768},
+            # 1820×1024 shows the same content area as a 1366×768 window at 75% zoom
+            # without any CSS/device-scale tricks that break getBoundingClientRect().
+            viewport={"width": 1820, "height": 1024},
             user_agent=(
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                 "AppleWebKit/537.36 (KHTML, like Gecko) "
@@ -711,51 +713,26 @@ class AleksBrowser:
 
     def get_current_question_number(self) -> int:
         """
-        Read the currently active question number from the ALEKS nav strip.
+        Read the current question number from the ALEKS page header.
 
-        Should be called ONLY when the question is in incorrect state
-        (i.e. get_attempt_info returned attempt > 0), because the nav
-        state is most reliable when ALEKS is showing a retry.
+        ALEKS always shows "Question X of 14" (or "Pregunta X de 14") in the
+        top bar. This is more reliable than inspecting nav-bubble CSS state.
 
-        Returns the active bubble number, or 0 if it cannot be determined.
+        Returns the question number, or 0 if it cannot be determined.
         """
         try:
             num = self.page.evaluate(r"""
                 () => {
-                    // Find small numeric elements in the top nav (y < 200px)
-                    const candidates = Array.from(document.querySelectorAll(
-                        'button, span, li, td, div'
-                    )).filter(el => {
-                        const r  = el.getBoundingClientRect();
-                        const t  = (el.textContent || '').trim();
-                        return (
-                            r.top < 200 && r.width > 5 && r.width < 100 &&
-                            r.height > 5 && r.height < 100 &&
-                            /^\d+$/.test(t) && el.offsetParent !== null
-                        );
-                    });
-
-                    for (const el of candidates) {
-                        const hasCurrent = (
-                            el.getAttribute('aria-current') ||
-                            el.getAttribute('aria-selected') === 'true' ||
-                            el.getAttribute('aria-pressed')  === 'true'
-                        );
-                        const cls = (el.className || '').toLowerCase();
-                        const isActive = (
-                            cls.includes('active') || cls.includes('current') ||
-                            cls.includes('selected') || cls.includes('focus')
-                        );
-                        if (hasCurrent || isActive) {
-                            const n = parseInt((el.textContent || '').trim(), 10);
-                            if (!isNaN(n) && n > 0 && n <= 50) return n;
-                        }
-                    }
+                    const text = document.body.innerText || '';
+                    // "Question 4 of 14", "Pregunta 4 de 14", "Q4/14"
+                    const m = text.match(
+                        /(?:Question|Pregunta|Q\.?)\s+(\d+)\s+(?:of|de|\/)\s+\d+/i
+                    );
+                    if (m) return parseInt(m[1], 10);
                     return 0;
                 }
             """)
             if num and num > 0:
-                log.info(f"  Active question bubble from page: {num}")
                 return int(num)
         except Exception as e:
             log.warning(f"  get_current_question_number failed: {e}")
@@ -763,87 +740,95 @@ class AleksBrowser:
 
     def get_bubble_status(self, question_num: int) -> str:
         """
-        Screenshot-based color check for question bubble N.
+        DOM-based color check for question bubble N.
 
-        Crops the exact bubble from the nav strip and classifies it:
-          'correct'   — vibrant GREEN  (answered right)
-          'incorrect' — RED            (answered wrong, may still have attempts)
-          'active'    — TEAL / other   (unanswered or currently selected)
+        Finds the nav bubble element by its number text, then reads the
+        computed background-color of the element (or its nearest colored
+        ancestor) directly from the DOM — no screenshots, no pixel math,
+        no hardcoded positions.
 
-        The tmp screenshot is deleted after analysis.
+        Returns:
+          'correct'   — green  (✓ answered right)
+          'incorrect' — red    (✗ answered wrong, may have attempts left)
+          'active'    — teal / gray (unanswered or currently selected)
         """
-        from PIL import Image
-        from pathlib import Path
+        status = self.page.evaluate(r"""
+            (qNum) => {
+                // ── 1. Find the bubble element for this question number ──────
+                const candidates = Array.from(document.querySelectorAll(
+                    'button, [role="button"], span, li, td, div, a'
+                )).filter(el => {
+                    const t = (el.textContent || '').trim();
+                    // Bubble text is "✓ 1", "× 2", "≡ 5" etc — match digits only
+                    const re = new RegExp('^[^0-9]*' + qNum + '[^0-9]*$');
+                    if (!re.test(t)) return false;
+                    const r = el.getBoundingClientRect();
+                    // Must be in the top navigation strip
+                    return (
+                        r.top >= 50 && r.top < 160 &&
+                        r.width > 20 && r.width < 120 &&
+                        r.height > 20 && r.height < 120 &&
+                        el.offsetParent !== null
+                    );
+                });
 
-        tmp_path = Path(__file__).parent / "screenshots" / "_bubble_check.png"
+                if (!candidates.length) return 'unknown';
 
-        try:
-            self.page.screenshot(path=str(tmp_path))
-            img = Image.open(tmp_path).convert("RGB")
-            width, height = img.size
+                // Pick the smallest element (the bubble itself, not a wrapper)
+                const bubble = candidates.reduce((a, b) => {
+                    const ra = a.getBoundingClientRect();
+                    const rb = b.getBoundingClientRect();
+                    return ra.width * ra.height <= rb.width * rb.height ? a : b;
+                });
 
-            bubble_spacing  = 68
-            bubble_start_x  = 65
-            bubble_radius   = 22
+                // ── 2. CSS class-name check (fastest path) ───────────────────
+                const fullCls = [bubble, bubble.parentElement, bubble.parentElement?.parentElement]
+                    .filter(Boolean)
+                    .map(n => (typeof n.className === 'string' ? n.className : ''))
+                    .join(' ')
+                    .toLowerCase();
 
-            bubble_cx = bubble_start_x + (question_num - 1) * bubble_spacing
-            bubble_cy = int(height * 0.115)
+                if (/\bcorrect\b|\bright\b|\bsuccess\b|\bdone\b/.test(fullCls)) return 'correct';
+                if (/\bincorrect\b|\bwrong\b|\berror\b|\bfail\b/.test(fullCls))  return 'incorrect';
 
-            crop_left   = max(0,     bubble_cx - bubble_radius)
-            crop_right  = min(width, bubble_cx + bubble_radius)
-            crop_top    = max(0,     bubble_cy - bubble_radius)
-            crop_bottom = min(height, bubble_cy + bubble_radius)
+                // ── 3. Walk up the DOM to find the first non-transparent bg ──
+                function parseBg(node) {
+                    for (let n = node; n && n !== document.body; n = n.parentElement) {
+                        const bg = window.getComputedStyle(n).backgroundColor;
+                        if (!bg || bg === 'rgba(0, 0, 0, 0)' || bg === 'transparent') continue;
+                        const m = bg.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+                        if (!m) continue;
+                        const r = +m[1], g = +m[2], b = +m[3];
+                        // Skip white / near-white / light-gray backgrounds
+                        if (r > 210 && g > 210 && b > 210) continue;
+                        return { r, g, b };
+                    }
+                    return null;
+                }
 
-            vibrant_green = 0
-            red           = 0
-            teal          = 0
-            total         = 0
+                const color = parseBg(bubble);
+                if (color) {
+                    const { r, g, b } = color;
+                    // Green: g clearly dominant over r and b
+                    if (g > 100 && g > r * 1.3 && g > b * 1.3) return 'correct';
+                    // Red: r clearly dominant
+                    if (r > 120 && r > g * 1.8 && r > b * 1.5) return 'incorrect';
+                }
 
-            for y in range(crop_top, crop_bottom):
-                for x in range(crop_left, crop_right):
-                    r, g, b = img.getpixel((x, y))
-                    total += 1
-                    if g > 100 and g > r * 1.3 and g > b * 1.4:
-                        vibrant_green += 1
-                    elif r > 150 and r > g * 2 and r > b * 2:
-                        red += 1
-                    elif g > 80 and b > 80 and abs(g - b) < 40 and g > r:
-                        teal += 1
+                return 'active';
+            }
+        """, question_num)
 
-            green_pct = (vibrant_green / total * 100) if total > 0 else 0
-            red_pct   = (red           / total * 100) if total > 0 else 0
-            teal_pct  = (teal          / total * 100) if total > 0 else 0
+        label = status if status in ('correct', 'incorrect', 'active') else 'active'
 
-            print(f"\n\033[1;33m  ┌─ BUBBLE CHECK Q{question_num} "
-                  f"(x={crop_left}-{crop_right}, y={crop_top}-{crop_bottom}) ──\033[0m")
-            print(f"\033[1;33m  │\033[0m  \033[1;32mGreen: {green_pct:.1f}%\033[0m  "
-                  f"\033[1;31mRed: {red_pct:.1f}%\033[0m  "
-                  f"\033[0;36mTeal: {teal_pct:.1f}%\033[0m")
-
-            if green_pct > 10:
-                print(f"\033[1;32m  │  >>> ✅ Q{question_num} CORRECT\033[0m")
-                print(f"\033[1;33m  └──────────────────────────────────\033[0m\n")
-                return 'correct'
-
-            if red_pct > 3:
-                print(f"\033[1;31m  │  >>> ❌ Q{question_num} INCORRECT/RED\033[0m")
-                print(f"\033[1;33m  └──────────────────────────────────\033[0m\n")
-                return 'incorrect'
-
-            print(f"\033[0;36m  │  >>> ○ Q{question_num} ACTIVE\033[0m")
-            print(f"\033[1;33m  └──────────────────────────────────\033[0m\n")
-            return 'active'
-
-        except Exception as e:
-            log.warning(f"  [bubble] Screenshot check failed: {e}")
-            return 'active'   # safe default: attempt to solve
-
-        finally:
-            try:
-                if tmp_path.exists():
-                    tmp_path.unlink()
-            except Exception:
-                pass
+        icons = {'correct': '✅', 'incorrect': '❌', 'active': '○'}
+        colors = {'correct': '\033[1;32m', 'incorrect': '\033[1;31m', 'active': '\033[0;36m'}
+        rst = '\033[0m'
+        print(
+            f"\n{colors[label]}  ┌─ BUBBLE Q{question_num}: {icons[label]} {label.upper()}{rst}\n"
+            f"{colors[label]}  └──────────────────────────────────{rst}\n"
+        )
+        return label
 
     def is_correct_answer_shown(self) -> bool:
         """
@@ -965,23 +950,15 @@ class AleksBrowser:
 
     # ─── Answer Input ───────────────────────────────────────────────
 
-    def input_answer(self, answer: str) -> bool:
+    def input_answer(self, answer: str, solver=None) -> bool:
         """
         Input the AI answer into the ALEKS answer field.
 
-        Delegates to ALEKSInputLayer which handles all 44 ALEKS input types:
-        fractions, square roots, exponents, mixed numbers, pi, trig,
-        absolute values, inequalities, and interactive graphs.
-
-        Args:
-            answer: Either a raw expression string ("3/4", "sqrt(16)", "x^2+3")
-                    or a JSON string from the AI
-                    ('{"type":"fraction","numerator":"3","denominator":"4"}')
-
-        Returns True if input operations completed without error.
+        Delegates to ALEKSInputLayer. Pass solver so graph questions can ask
+        the chatbot for axis ranges if DOM data-attributes are absent.
         """
         from aleks_math_input import ALEKSInputLayer
-        layer = ALEKSInputLayer(self.page)
+        layer = ALEKSInputLayer(self.page, solver=solver)
         return layer.input_answer(answer)
 
     # ─── Pre/Post Verification ───────────────────────────────────────
@@ -1052,13 +1029,11 @@ class AleksBrowser:
         Falls back to JS coordinate scan, then Enter key.
         Does NOT call wait_for_load_state (that was the hang source).
         """
+        # ONLY check/verify buttons — never "Entregar actividad" (Submit Assignment)
         submit_selectors = [
             'button:has-text("Check")',
-            'button:has-text("Entregar actividad")',
-            'button:has-text("Entregar")',
-            'button:has-text("Submit")',
             'button:has-text("Verificar")',
-            'button[class*="submit"]',
+            'button:has-text("Comprobar")',
             'button[class*="check"]',
             'input[type="submit"]',
             '#submit-btn',
@@ -1076,10 +1051,14 @@ class AleksBrowser:
             except Exception:
                 continue
 
-        # JS coordinate fallback
-        submit_hints = ["Check", "Verificar", "Submit", "Entregar", "Aceptar"]
+        # JS coordinate fallback — never click "Submit Assignment" / "Entregar actividad"
+        submit_hints = ["Check", "Verificar", "Comprobar"]
         coord = self.page.evaluate("""
             (hints) => {
+                const FORBIDDEN = [
+                    "submit assignment", "entregar actividad",
+                    "submit", "entregar",
+                ];
                 const els = Array.from(document.querySelectorAll(
                     'button, input[type="submit"], input[type="button"], [role="button"]'
                 ));
@@ -1087,9 +1066,10 @@ class AleksBrowser:
                     if (!el.offsetParent) continue;
                     const r = el.getBoundingClientRect();
                     if (r.width < 5 || r.height < 5) continue;
-                    const t = (el.textContent || el.value || '').trim();
+                    const t = (el.textContent || el.value || '').trim().toLowerCase();
+                    if (FORBIDDEN.some(f => t.includes(f))) continue;
                     for (const h of hints) {
-                        if (t.toLowerCase().includes(h.toLowerCase()))
+                        if (t.includes(h.toLowerCase()))
                             return { x: r.left + r.width/2, y: r.top + r.height/2 };
                     }
                 }
@@ -1108,83 +1088,92 @@ class AleksBrowser:
         self.page.keyboard.press("Enter")
         time.sleep(1.5)
 
-    def check_result(self) -> str:
+    def check_result(self, solver=None) -> str:
         """
-        Screenshot-based result check after submitting an answer.
+        DOM-based result check after submitting an answer.
 
-        Takes a tmp screenshot, checks the banner area for:
-          GREEN icon → correct
-          RED icon   → incorrect
-          Neither    → unknown
+        Strategy:
+          1. CSS class scan — looks for ALEKS feedback banner classes
+          2. Visible text scan — standalone "Correct" / "Incorrect" word
+          3. Chatbot vision fallback (solver required) — screenshot → classify_result()
 
-        Uses the same pixel analysis as should_skip_question.
+        Returns 'correct', 'incorrect', or 'unknown'.
         """
-        from PIL import Image
-        from pathlib import Path
+        time.sleep(2)  # Give ALEKS time to evaluate and show the result banner
 
-        time.sleep(2)  # Give ALEKS time to evaluate and show result
+        # ── 1 & 2: DOM inspection ────────────────────────────────────────
+        dom_result = self.page.evaluate(r"""
+            () => {
+                // ── Class-based check (fastest) ──────────────────────────
+                const correctEl = document.querySelector(
+                    '[class*="correct_banner"], [class*="correctBanner"], '  +
+                    '[class*="correct_icon"],   [class*="correctIcon"],   '  +
+                    '[class*="feedback_correct"],[class*="feedbackCorrect"]'
+                );
+                if (correctEl && correctEl.offsetParent !== null) return 'correct';
 
-        tmp_path = Path(__file__).parent / "screenshots" / "_result_check.png"
+                const incorrectEl = document.querySelector(
+                    '[class*="incorrect_banner"], [class*="incorrectBanner"], ' +
+                    '[class*="incorrect_icon"],   [class*="incorrectIcon"],   ' +
+                    '[class*="feedback_incorrect"],[class*="feedbackIncorrect"]'
+                );
+                if (incorrectEl && incorrectEl.offsetParent !== null) return 'incorrect';
 
-        try:
-            self.page.screenshot(path=str(tmp_path))
-            img = Image.open(tmp_path).convert("RGB")
-            width, height = img.size
+                // ── Visible text scan — match standalone word only ────────
+                // Walk all visible text nodes; ignore "Correct Answer" reveal
+                const walker = document.createTreeWalker(
+                    document.body,
+                    NodeFilter.SHOW_TEXT,
+                    {
+                        acceptNode: n =>
+                            n.parentElement && n.parentElement.offsetParent !== null
+                                ? NodeFilter.FILTER_ACCEPT
+                                : NodeFilter.FILTER_REJECT
+                    }
+                );
+                let node;
+                let hasCorrect = false, hasIncorrect = false;
+                while ((node = walker.nextNode())) {
+                    const t = node.textContent.trim();
+                    if (/^(Correct|Correcto)$/i.test(t))   hasCorrect   = true;
+                    if (/^(Incorrect|Incorrecto)$/i.test(t)) hasIncorrect = true;
+                }
+                // "Correct Answer" reveal uses a paragraph, not a standalone word,
+                // so standalone "Correct" here safely means the feedback banner.
+                if (hasIncorrect) return 'incorrect';
+                if (hasCorrect)   return 'correct';
 
-            # Check banner area (where Correct/Incorrect icon appears)
-            banner_top = int(height * 0.28)
-            banner_bottom = int(height * 0.52)
-            banner_right = int(width * 0.25)
+                return null;
+            }
+        """)
 
-            green_count = 0
-            red_count = 0
-            total = 0
+        if dom_result in ('correct', 'incorrect'):
+            log.info(f"  check_result (DOM): {dom_result}")
+            _c = '\033[1;32m' if dom_result == 'correct' else '\033[1;31m'
+            print(f"{_c}  │ Result (DOM): {dom_result.upper()}\033[0m")
+            return dom_result
 
-            for y in range(banner_top, banner_bottom, 2):
-                for x in range(10, banner_right, 2):
-                    r, g, b = img.getpixel((x, y))
-                    total += 1
-                    if g > 100 and g > r * 1.2 and g > b:
-                        green_count += 1
-                    if r > 150 and r > g * 1.5 and r > b * 1.3:
-                        red_count += 1
-
-            green_pct = (green_count / total * 100) if total > 0 else 0
-            red_pct = (red_count / total * 100) if total > 0 else 0
-
-            print(f"\033[1;33m  │ Result check: green={green_pct:.1f}%  red={red_pct:.1f}%\033[0m")
-
-            if green_pct > 0.5:
-                return "correct"
-            if red_pct > 0.5:
-                return "incorrect"
-
-            # Fallback: check body text
+        # ── 3: Chatbot vision fallback ───────────────────────────────────
+        if solver is not None:
             try:
-                import re
-                body_text = self.page.evaluate(
-                    "() => (document.body.innerText || '').substring(0, 3000)"
-                )
-                if re.search(r'\bCorrect\b', body_text) or re.search(r'\bCorrecto\b', body_text):
-                    if not re.search(r'correct\s+answer', body_text, re.IGNORECASE):
-                        return "correct"
-                if re.search(r'\bIncorrect\b', body_text) or re.search(r'\bIncorrecto\b', body_text):
-                    return "incorrect"
-            except Exception:
-                pass
+                from pathlib import Path as _Path
+                tmp = _Path(__file__).parent / "screenshots" / "_result_check.png"
+                self.page.screenshot(path=str(tmp))
+                vision_result = solver.classify_result(tmp)
+                try:
+                    tmp.unlink()
+                except Exception:
+                    pass
+                if vision_result in ('correct', 'incorrect'):
+                    log.info(f"  check_result (chatbot): {vision_result}")
+                    _c = '\033[1;32m' if vision_result == 'correct' else '\033[1;31m'
+                    print(f"{_c}  │ Result (chatbot): {vision_result.upper()}\033[0m")
+                    return vision_result
+            except Exception as e:
+                log.warning(f"  check_result chatbot fallback failed: {e}")
 
-            return "unknown"
-
-        except Exception as e:
-            log.warning(f"  [check_result] Screenshot check failed: {e}")
-            return "unknown"
-
-        finally:
-            try:
-                if tmp_path.exists():
-                    tmp_path.unlink()
-            except Exception:
-                pass
+        log.warning("  check_result: inconclusive — returning 'unknown'")
+        return "unknown"
 
     def click_next(self, current_question_num: int = 0):
         """
@@ -1211,16 +1200,31 @@ class AleksBrowser:
             next_num = current_question_num + 1
             bubble_clicked = self.page.evaluate("""
                 (nextNum) => {
+                    // ALEKS bubble text is "✓ 1", "× 2", "≡ 5" — match digit only.
+                    const re = new RegExp('^[^0-9]*' + nextNum + '[^0-9]*$');
+
+                    // Walk UP from the matched text element to the nearest
+                    // interactive ancestor (button / role=button / <a>) so the
+                    // click lands on the actual nav trigger, not an inner span.
+                    function clickableAncestor(el) {
+                        for (let n = el; n && n !== document.body; n = n.parentElement) {
+                            const tag = n.tagName;
+                            const role = (n.getAttribute('role') || '').toLowerCase();
+                            if (tag === 'BUTTON' || tag === 'A' || role === 'button' || role === 'link')
+                                return n;
+                        }
+                        return el;
+                    }
+
                     const all = Array.from(document.querySelectorAll(
-                        'button, [role="button"], span, li, td, div'
+                        'button, [role="button"], span, li, td, div, a'
                     ));
                     for (const el of all) {
                         const t = (el.textContent || '').trim();
-                        if (t === String(nextNum) && el.offsetParent !== null) {
+                        if (re.test(t) && el.offsetParent !== null) {
                             const r = el.getBoundingClientRect();
-                            // Bubbles are at the top nav header, usually r.top < 150
-                            if (r.top < 200 && r.width < 100 && r.height < 100 && r.width > 5) {
-                                el.click();
+                            if (r.top < 200 && r.width > 5 && r.width < 120 && r.height < 120) {
+                                clickableAncestor(el).click();
                                 return true;
                             }
                         }
@@ -1229,7 +1233,7 @@ class AleksBrowser:
                 }
             """, next_num)
             if bubble_clicked:
-                log.info(f"  Advanced explicitly to question bubble {next_num}")
+                log.info(f"  Advanced to bubble {next_num}")
                 time.sleep(2)
                 return
 

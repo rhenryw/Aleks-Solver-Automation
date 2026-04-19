@@ -213,6 +213,9 @@ def main():
             # Solve loop for this activity
             question_num = 0
             max_questions = 50  # Safety limit per activity
+            correct_questions: set[int] = set()  # questions confirmed correct this session
+            _last_page_num  = -1                 # stuck-detection: last seen page question
+            _stuck_count    = 0
 
             while question_num < max_questions:
                 question_num += 1
@@ -222,33 +225,58 @@ def main():
                     log.info(f"No more questions in {activity_name}")
                     break
 
+                # ── Sync question counter with the actual page ────────────────
+                page_num = browser.get_current_question_number()
+                if page_num > 0:
+                    if page_num != question_num:
+                        log.info(f"  Q offset corrected: Python={question_num} → Page={page_num}")
+                    question_num = page_num
+
+                # ── Stuck-detection: same page question N times in a row ──────
+                if question_num == _last_page_num:
+                    _stuck_count += 1
+                    if _stuck_count >= 3:
+                        log.warning(f"  Stuck on Q{question_num} — forcing keyboard advance")
+                        browser.page.keyboard.press("Tab")
+                        time.sleep(0.5)
+                        browser.press_continue()
+                        time.sleep(1)
+                        _stuck_count = 0
+                        continue
+                else:
+                    _stuck_count   = 0
+                    _last_page_num = question_num
+
+                # Hard skip — this question was already confirmed correct this session.
+                if question_num in correct_questions:
+                    log.info(f"── Q{question_num}: known correct (session cache) ⏭️")
+                    browser.press_continue()   # works whether a banner OR a nav button is shown
+                    time.sleep(1)
+                    continue
+
                 # ── DOUBLE CONFIRMATION ───────────────────────────────────────
-                # Step 1: check bubble color
                 bubble = browser.get_bubble_status(question_num)
 
                 if bubble == 'correct':
-                    # GREEN — confirmed correct, move on immediately
-                    log.info(f"── Q{question_num}: correct ✓ ⏭️")
-                    browser.press_continue()
-                    browser.click_next(question_num)
+                    log.info(f"── Q{question_num}: already correct ✓ ⏭️")
+                    correct_questions.add(question_num)
+                    browser.press_continue()   # ALEKS shows Continue even for pre-answered Qs
                     time.sleep(1)
                     continue
 
                 elif bubble == 'incorrect':
                     # RED — second confirmation: check if the correct answer is revealed
                     if browser.is_correct_answer_shown():
-                        # ALEKS is showing the correct answer → question is dead.
-                        # The page has a "Continue" button, not a nav bubble — use press_continue.
+                        # ALEKS shows the correct answer → question is dead.
+                        # Dismiss the reveal with Continue, then force-advance in case
+                        # ALEKS doesn't auto-navigate on its own.
                         log.info(f"── Q{question_num}: exhausted (correct answer shown) ⏭️")
                         browser.press_continue()
+                        browser.click_next(question_num)
                         time.sleep(1)
                         continue
                     else:
                         # Correct answer NOT shown → still has attempts, solve it
-                        page_q_num = browser.get_current_question_number()
-                        if page_q_num > 0 and page_q_num != question_num:
-                            log.info(f"  Syncing Q counter: {question_num} → {page_q_num}")
-                            question_num = page_q_num
                         log.info(f"── Q{question_num}: incorrect — retrying")
 
                 else:
@@ -285,16 +313,18 @@ def main():
                 browser.page.screenshot(path=str(screenshot_path))
 
                 # Ask the AI
-                answer, _ = solver.solve_from_screenshot(
+                answer, instructions = solver.solve_from_screenshot(
                     image_path=screenshot_path,
                     dom_text=question_text,
                     context=topic,
                 )
 
+                if instructions:
+                    log.info(f"  AI Instructions: {instructions}")
                 log.info(f"  AI Answer: {answer}")
 
                 # ── Input the answer into ALEKS ───────────────────────
-                input_ok = browser.input_answer(answer)
+                input_ok = browser.input_answer(answer, solver=solver)
                 if not input_ok:
                     log.warning(f"  Q{question_num}: input layer returned False — skipping submit")
                     all_results.append({
@@ -321,7 +351,7 @@ def main():
                 time.sleep(1.5)
 
                 # ── Check result ──────────────────────────────────────
-                result = browser.check_result()
+                result = browser.check_result(solver=solver)
                 log.info(f"  Q{question_num}: {result}")
 
                 all_results.append({
@@ -332,6 +362,11 @@ def main():
                     "result":       result,
                     "timestamp":    datetime.now().isoformat(),
                 })
+
+                # After correct: cache it, dismiss the banner, then advance
+                if result == "correct":
+                    correct_questions.add(question_num)
+                    browser.press_continue()
 
                 # Advance to next question
                 browser.click_next(question_num)

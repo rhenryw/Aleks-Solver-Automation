@@ -7,15 +7,14 @@ mixed numbers, pi, trig functions, absolute values, inequalities, graphs.
 
 Architecture:
   1. ALEKSInputLayer.input_answer(answer_str_or_json)
-       → _detect_type()        — classify the answer
+       → _focus_editor()       — click the ansed math editor
+       → _clear_editor()       — backspace loop + Clear button
        → _input_expression()   — tokenize + dispatch tokens
        → _process_token()      — execute each token as UI ops
 
-Button-click fallback chain for every tool:
-  1. aria-label / title selectors
-  2. Class-pattern selectors
-  3. Keyboard shortcut (where ALEKS supports one)
-  4. Log warning and type raw text
+Button-click rule: after EVERY toolbar button click, call _refocus() to
+restore keyboard focus to the math editor. This prevents the "empty box"
+bug where toolbar clicks steal focus away from nested template boxes.
 """
 
 import json
@@ -25,25 +24,6 @@ import time
 
 log = logging.getLogger("aleks_math_input")
 
-
-# ─── ALEKS answer-input selectors (most-specific first) ─────────────────────
-
-_ANSWER_FIELD_SELECTORS = [
-    # ALEKS custom math editor
-    '[id^="ansed_"] input',
-    '[class*="ansed"] input',
-    '.ansed_root input',
-    # Generic answer/response inputs below the question
-    'input[class*="answer"]',
-    'input[class*="response"]',
-    'input[id*="answer"]',
-    '#answer_input',
-    # Contenteditable math editors
-    '[contenteditable="true"][class*="math"]',
-    '[contenteditable="true"][class*="answer"]',
-    # Last resort: first visible text input below y=100
-    'input[type="text"]:visible',
-]
 
 # ─── Math tool button selectors ──────────────────────────────────────────────
 
@@ -56,7 +36,6 @@ _BUTTON_SELECTORS = {
         '[class*="fraction_button"]',
         '[class*="fractionButton"]',
         'button[title="/"]',
-        'button:has-text("/")',
     ],
     "sqrt": [
         'button[title*="Square root" i]',
@@ -75,7 +54,6 @@ _BUTTON_SELECTORS = {
         'button[title*="Exponente" i]',
         '[class*="exponent_button"]',
         '[class*="exponentButton"]',
-        'button:has-text("^")',
     ],
     "pi": [
         'button[title="π"]',
@@ -115,7 +93,20 @@ _BUTTON_SELECTORS = {
 
 # Keyboard shortcuts ALEKS accepts in its math editor
 _KEYBOARD_SHORTCUTS = {
-    "fraction": "/",   # "/" triggers fraction mode
+    "fraction": "/",
+}
+
+# JS text-hint fallback for each tool button
+_BUTTON_TEXT_HINTS = {
+    "pi":             ["π", "pi", "Pi", "PI"],
+    "sqrt":           ["√", "square root", "Square Root", "raíz", "Raíz"],
+    "fraction":       ["/", "fraction", "Fraction", "fracción", "Fracción"],
+    "exponent":       ["^", "exponent", "Exponent", "exponente"],
+    "absolute_value": ["|•|", "|", "absolute", "Absolute", "valor absoluto"],
+    "mixed_number":   ["mixed", "Mixed", "mixto", "Mixto"],
+    "not_equal":      ["≠"],
+    "less_equal":     ["≤"],
+    "greater_equal":  ["≥"],
 }
 
 
@@ -129,8 +120,9 @@ class ALEKSInputLayer:
         layer.submit_answer()
     """
 
-    def __init__(self, page):
-        self.page = page
+    def __init__(self, page, solver=None):
+        self.page   = page
+        self.solver = solver   # optional ChatbotSolver for vision fallbacks
 
     # ═══════════════════════════════════════════════════════════════════
     #  PUBLIC API
@@ -138,41 +130,38 @@ class ALEKSInputLayer:
 
     def input_answer(self, answer: str) -> bool:
         """
-        Master entry point.  Accepts either:
-          • A raw answer string: "3/4", "sqrt(16)", "x^2 + 3", "42"
-          • A JSON string from the AI: '{"type":"fraction","numerator":"3","denominator":"4"}'
-          • A dict already parsed from JSON
-
-        Returns True if input operations were performed without error.
+        Master entry point. Accepts:
+          • Raw answer string: "3/4", "sqrt(16)", "x^2 + 3", "42"
+          • JSON string: '{"type":"fraction","numerator":"3","denominator":"4"}'
+          • Dict already parsed from JSON
         """
         if not answer:
             log.warning("input_answer: empty answer — skipping")
             return False
 
         if isinstance(answer, dict):
-            return self._dispatch_json(answer)
+            data = answer
+        else:
+            answer = answer.strip()
+            data = None
+            if answer.startswith("{"):
+                try:
+                    data = json.loads(answer)
+                except json.JSONDecodeError:
+                    pass
 
-        answer = answer.strip()
+        if data is not None:
+            if data.get("type", "simple").lower() != "graph":
+                self._focus_editor()
+                self._clear_editor()
+            return self._dispatch_json(data)
 
-        # Try to parse as JSON
-        if answer.startswith("{"):
-            try:
-                data = json.loads(answer)
-                return self._dispatch_json(data)
-            except json.JSONDecodeError:
-                pass
-
-        # Plain expression string
+        self._focus_editor()
+        self._clear_editor()
         return self._input_expression(answer)
 
     def submit_answer(self) -> bool:
-        """
-        Click the ALEKS "Check / Verificar / Submit" button.
-
-        Never hangs: each selector attempt uses a 2-second timeout.
-        Falls back to JS coordinate scan, then Enter key.
-        Returns True if a button was found and clicked.
-        """
+        """Click Check / Verificar / Submit. Falls back to Enter."""
         submit_selectors = [
             'button:has-text("Check")',
             'button:has-text("Verificar")',
@@ -187,7 +176,6 @@ class ALEKSInputLayer:
         for sel in submit_selectors:
             try:
                 btn = self.page.locator(sel).first
-                # Short timeout so a missing element never blocks
                 if btn.is_visible(timeout=2_000):
                     btn.click(timeout=3_000)
                     log.info(f"  Submitted via {sel}")
@@ -196,114 +184,72 @@ class ALEKSInputLayer:
             except Exception:
                 continue
 
-        # JS coordinate fallback — finds any visible submit/check button by text
         submit_hints = ["Check", "Verificar", "Submit", "Entregar", "OK", "Aceptar"]
-        coord = self.page.evaluate(f"""
-            (hints) => {{
+        coord = self.page.evaluate("""
+            (hints) => {
                 const els = Array.from(document.querySelectorAll(
                     'button, input[type="submit"], input[type="button"], [role="button"]'
                 ));
-                for (const el of els) {{
+                for (const el of els) {
                     if (!el.offsetParent) continue;
                     const r = el.getBoundingClientRect();
                     if (r.width < 5 || r.height < 5) continue;
                     const t = (el.textContent || el.value || '').trim();
-                    for (const h of hints) {{
+                    for (const h of hints) {
                         if (t.toLowerCase().includes(h.toLowerCase()))
-                            return {{ x: r.left + r.width/2, y: r.top + r.height/2 }};
-                    }}
-                }}
+                            return { x: r.left + r.width/2, y: r.top + r.height/2 };
+                    }
+                }
                 return null;
-            }}
+            }
         """, submit_hints)
 
         if coord:
             self.page.mouse.click(coord["x"], coord["y"])
-            log.info(f"  Submitted via JS coord ({coord['x']:.0f},{coord['y']:.0f})")
+            log.info(f"  Submitted via JS coord")
             time.sleep(1.5)
             return True
 
-        # Last resort: Enter key
         log.warning("  submit_answer: no button found — pressing Enter")
         self.page.keyboard.press("Enter")
         time.sleep(1.5)
         return False
 
     # ═══════════════════════════════════════════════════════════════════
-    #  JSON DISPATCHER
+    #  EDITOR FOCUS & CLEAR
     # ═══════════════════════════════════════════════════════════════════
 
-    def _dispatch_json(self, data: dict) -> bool:
-        atype = data.get("type", "simple").lower()
-
-        # Focus the answer field first for non-graph answers
-        if atype != "graph":
-            self._focus_answer_field()
-
-        if atype == "simple":
-            return self._input_expression(str(data.get("value", "")))
-
-        elif atype == "fraction":
-            self._input_fraction(
-                str(data.get("numerator", "")),
-                str(data.get("denominator", ""))
-            )
-            return True
-
-        elif atype == "sqrt":
-            self._input_sqrt(str(data.get("radicand", "")))
-            return True
-
-        elif atype == "exponent":
-            self._input_exponent(
-                str(data.get("base", "")),
-                str(data.get("exponent", data.get("exp", "")))
-            )
-            return True
-
-        elif atype == "mixed":
-            self._input_mixed(
-                str(data.get("whole", "")),
-                str(data.get("numerator", "")),
-                str(data.get("denominator", ""))
-            )
-            return True
-
-        elif atype == "graph":
-            return self._input_graph(data)
-
-        elif atype in ("expression", "equation", "inequality"):
-            val = data.get("value", data.get("raw", data.get("answer", "")))
-            return self._input_expression(str(val))
-
-        else:
-            val = data.get("value", data.get("answer", data.get("raw", "")))
-            return self._input_expression(str(val))
-
-    # ═══════════════════════════════════════════════════════════════════
-    #  ANSWER FIELD FOCUS
-    # ═══════════════════════════════════════════════════════════════════
-
-    def _focus_answer_field(self) -> bool:
+    def _focus_editor(self) -> bool:
         """
-        Find the ALEKS answer input and give it focus.
-        Returns True if an element was explicitly clicked; False if done via JS.
-        """
-        for sel in _ANSWER_FIELD_SELECTORS:
-            try:
-                el = self.page.locator(sel).first
-                if el.is_visible():
-                    el.click()
-                    log.info(f"  Focused answer field ({sel})")
-                    time.sleep(0.3)
-                    self._clear_field()
-                    return True
-            except Exception:
-                continue
+        Click the ALEKS ansed math editor to give it keyboard focus.
 
-        # JS fallback: find visible inputs below y=100 that are NOT search/nav
+        ALEKS renders its answer editor as a div with class 'ansed_root'.
+        Clicking the CENTER of this div activates ALEKS's keyboard listeners.
+        This is the ONLY reliable focus method — .focus() alone doesn't work
+        on canvas/custom editors.
+        """
+        # ── 1. JS coord scan: find .ansed_root ───────────────────────────
         coord = self.page.evaluate(r"""
             () => {
+                // ALEKS answer editor classes (confirmed from DOM inspection)
+                const selectors = [
+                    '.ansed_root',
+                    '[class*="ansed_root"]',
+                    '[id*="ansed_root"]',
+                    '[class*="ansed-root"]',
+                    // Canvas inside the editor (some ALEKS versions)
+                    '[class*="ansed"] canvas',
+                    '[id*="ansed"] canvas',
+                ];
+                for (const sel of selectors) {
+                    const el = document.querySelector(sel);
+                    if (!el || !el.offsetParent) continue;
+                    const r = el.getBoundingClientRect();
+                    if (r.width < 10 || r.height < 10) continue;
+                    return { x: r.left + r.width / 2, y: r.top + r.height / 2, sel };
+                }
+
+                // ── Fallback: plain text inputs below y=100 ──────────────
                 const inputs = Array.from(
                     document.querySelectorAll('input[type="text"], input:not([type])')
                 ).filter(el => {
@@ -311,39 +257,79 @@ class ALEKSInputLayer:
                     const cls = (el.className || '').toLowerCase();
                     const id  = (el.id  || '').toLowerCase();
                     if (cls.includes('search') || cls.includes('filter') ||
-                        id.includes('search')  || id.includes('login')  ||
+                        id.includes('search')  || id.includes('login') ||
                         id.includes('nav'))     return false;
                     const r = el.getBoundingClientRect();
                     return r.top > 100 && r.width > 20;
                 });
-                if (!inputs.length) return null;
-                const r = inputs[0].getBoundingClientRect();
-                return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+                if (inputs.length) {
+                    const r = inputs[0].getBoundingClientRect();
+                    return { x: r.left + r.width / 2, y: r.top + r.height / 2, sel: 'input' };
+                }
+                return null;
             }
         """)
 
         if coord:
             self.page.mouse.click(coord["x"], coord["y"])
-            log.info(f"  Focused answer field via JS ({coord['x']:.0f},{coord['y']:.0f})")
-            time.sleep(0.3)
-            self._clear_field()
+            log.info(f"  Focused editor ({coord['sel']})")
+            time.sleep(0.4)
             return True
 
-        log.warning("  _focus_answer_field: no input found")
+        # ── 2. Playwright locator fallback ────────────────────────────────
+        for sel in ['.ansed_root', '[class*="ansed_root"]',
+                    'input[class*="answer"]', '#answer_input']:
+            try:
+                el = self.page.locator(sel).first
+                if el.is_visible():
+                    el.click()
+                    log.info(f"  Focused via locator ({sel})")
+                    time.sleep(0.3)
+                    return True
+            except Exception:
+                continue
+
+        log.warning("  _focus_editor: no editor found")
         return False
 
-    def _clear_field(self):
-        """Aggressively clear the currently focused answer field."""
-        # Select all + delete (covers both plain inputs and math editors)
-        self.page.keyboard.press("Control+a")
-        time.sleep(0.1)
-        self.page.keyboard.press("Delete")
-        time.sleep(0.1)
-        # Second pass: Backspace loop clears any residual math editor tokens
-        for _ in range(20):
-            self.page.keyboard.press("Backspace")
-            time.sleep(0.03)
-        # Also try the ALEKS "Clear" (X) button if visible
+    def _refocus(self):
+        """
+        Re-click the math editor after a toolbar button click.
+
+        Toolbar button clicks (fraction, sqrt, π, etc.) can steal keyboard
+        focus away from the math editor. This call restores focus so that
+        subsequent keyboard.type / keyboard.press go into the editor.
+
+        Called after EVERY _click_tool_button() that returns True.
+        """
+        coord = self.page.evaluate(r"""
+            () => {
+                const el = document.querySelector(
+                    '.ansed_root, [class*="ansed_root"], [id*="ansed_root"]'
+                );
+                if (!el || !el.offsetParent) return null;
+                const r = el.getBoundingClientRect();
+                if (r.width < 10 || r.height < 10) return null;
+                return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+            }
+        """)
+        if coord:
+            self.page.mouse.click(coord["x"], coord["y"])
+            time.sleep(0.2)
+
+    def _clear_editor(self):
+        """
+        Clear the ALEKS math editor content.
+
+        Does NOT use Control+A — that selects all page text when focus is on
+        the page body instead of the editor, causing the blue text-selection
+        effect seen in screenshots.
+
+        Strategy:
+          1. Try the ALEKS Clear (×) toolbar button first (most reliable)
+          2. End → 30× Backspace to erase tokens one by one
+        """
+        # ── 1. ALEKS Clear button (fastest) ──────────────────────────────
         for sel in [
             'button[title*="Clear" i]',
             'button[aria-label*="Clear" i]',
@@ -355,42 +341,79 @@ class ALEKSInputLayer:
                 el = self.page.locator(sel).first
                 if el.is_visible():
                     el.click()
-                    log.info(f"  Cleared via ALEKS Clear button ({sel})")
-                    time.sleep(0.2)
-                    break
+                    log.info(f"  Cleared via Clear button ({sel})")
+                    time.sleep(0.3)
+                    self._refocus()   # restore editor focus after button click
+                    return
             except Exception:
                 continue
 
+        # ── 2. End + Backspace loop ───────────────────────────────────────
+        self.page.keyboard.press("End")
+        time.sleep(0.05)
+        for _ in range(30):
+            self.page.keyboard.press("Backspace")
+            time.sleep(0.03)
+
     # ═══════════════════════════════════════════════════════════════════
-    #  BUTTON CLICK
+    #  JSON DISPATCHER
     # ═══════════════════════════════════════════════════════════════════
 
-    # Text fragments to search for each tool button via JS coordinate fallback
-    _BUTTON_TEXT_HINTS = {
-        "pi":             ["π", "pi", "Pi", "PI"],
-        "sqrt":           ["√", "square root", "Square Root", "raíz", "Raíz"],
-        "fraction":       ["/", "fraction", "Fraction", "fracción", "Fracción"],
-        "exponent":       ["^", "exponent", "Exponent", "exponente"],
-        "absolute_value": ["|•|", "|", "absolute", "Absolute", "valor absoluto"],
-        "mixed_number":   ["mixed", "Mixed", "mixto", "Mixto"],
-        "not_equal":      ["≠"],
-        "less_equal":     ["≤"],
-        "greater_equal":  ["≥"],
-    }
+    def _dispatch_json(self, data: dict) -> bool:
+        atype = data.get("type", "simple").lower()
+
+        if atype == "simple":
+            return self._input_expression(str(data.get("value", "")))
+        elif atype == "fraction":
+            self._input_fraction(
+                str(data.get("numerator", "")),
+                str(data.get("denominator", ""))
+            )
+            return True
+        elif atype == "sqrt":
+            self._input_sqrt(str(data.get("radicand", "")))
+            return True
+        elif atype == "exponent":
+            self._input_exponent(
+                str(data.get("base", "")),
+                str(data.get("exponent", data.get("exp", "")))
+            )
+            return True
+        elif atype == "mixed":
+            self._input_mixed(
+                str(data.get("whole", "")),
+                str(data.get("numerator", "")),
+                str(data.get("denominator", ""))
+            )
+            return True
+        elif atype == "graph":
+            return self._input_graph(data)
+        elif atype in ("expression", "equation", "inequality"):
+            val = data.get("value", data.get("raw", data.get("answer", "")))
+            return self._input_expression(str(val))
+        else:
+            val = data.get("value", data.get("answer", data.get("raw", "")))
+            return self._input_expression(str(val))
+
+    # ═══════════════════════════════════════════════════════════════════
+    #  BUTTON CLICK  (with mandatory refocus after every click)
+    # ═══════════════════════════════════════════════════════════════════
 
     def _click_tool_button(self, tool: str) -> bool:
         """
         Click an ALEKS math palette tool button.
 
-        Strategy chain (never hangs — all calls are non-blocking):
-          1. Playwright locator selectors (aria/title/class/text)
-          2. JS coordinate scan — finds any visible button whose
-             textContent or title matches known hints, clicks by coords
-          3. Keyboard shortcut (if defined for this tool)
+        After a successful button click, always call _refocus() so the math
+        editor regains keyboard focus before the next keyboard.type/press.
 
-        Returns True if the tool was activated by any strategy.
+        Strategy chain:
+          1. Playwright selectors (aria/title/class/text)
+          2. JS coordinate scan — text-content matching
+          3. Keyboard shortcut (if defined)
+
+        Returns True if the tool was activated.
         """
-        # ── Strategy 1: Playwright selectors ────────────────────────────
+        # ── Strategy 1: Playwright selectors ─────────────────────────────
         for sel in _BUTTON_SELECTORS.get(tool, []):
             try:
                 el = self.page.locator(sel).first
@@ -398,23 +421,23 @@ class ALEKSInputLayer:
                     el.click()
                     log.info(f"  Clicked '{tool}' button ({sel})")
                     time.sleep(0.3)
+                    self._refocus()   # ← restore editor focus
                     return True
             except Exception:
                 continue
 
-        # ── Strategy 2: JS coordinate scan ──────────────────────────────
-        hints = self._BUTTON_TEXT_HINTS.get(tool, [])
+        # ── Strategy 2: JS coordinate scan ───────────────────────────────
+        hints = _BUTTON_TEXT_HINTS.get(tool, [])
         if hints:
             hints_js = json.dumps(hints)
             coord = self.page.evaluate(f"""
                 (hints) => {{
-                    // Search every button/input-button on the page
                     const candidates = Array.from(document.querySelectorAll(
                         'button, input[type="button"], [role="button"], ' +
                         '[class*="tool"], [class*="btn"], [class*="button"]'
                     ));
                     for (const el of candidates) {{
-                        if (!el.offsetParent) continue;          // not visible
+                        if (!el.offsetParent) continue;
                         const r = el.getBoundingClientRect();
                         if (r.width < 5 || r.height < 5) continue;
                         const text  = (el.textContent  || '').trim();
@@ -435,12 +458,12 @@ class ALEKSInputLayer:
 
             if coord:
                 self.page.mouse.click(coord["x"], coord["y"])
-                log.info(f"  Clicked '{tool}' button via JS coords "
-                         f"({coord['x']:.0f},{coord['y']:.0f})")
+                log.info(f"  Clicked '{tool}' button via JS coords")
                 time.sleep(0.3)
+                self._refocus()   # ← restore editor focus
                 return True
 
-        # ── Strategy 3: keyboard shortcut ───────────────────────────────
+        # ── Strategy 3: keyboard shortcut (no refocus needed — key event) ─
         shortcut = _KEYBOARD_SHORTCUTS.get(tool)
         if shortcut:
             self.page.keyboard.press(shortcut)
@@ -456,31 +479,13 @@ class ALEKSInputLayer:
     # ═══════════════════════════════════════════════════════════════════
 
     def _input_expression(self, expr: str) -> bool:
-        """
-        Parse and input a math expression string.
-
-        Handles (in order of detection priority):
-          simple fraction        3/4
-          mixed number           2 3/5
-          sqrt                   sqrt(x+4) or √x
-          exponent               x^2  or  x^(n+1)
-          absolute value         |x+3|
-          pi                     pi or π
-          trig                   sin(x) cos(x) tan(x)
-          composite              any combination of the above
-        """
-        self._focus_answer_field()
-
         tokens = self._tokenize(expr.strip())
         log.info(f"  Tokens: {tokens}")
-
         for tok in tokens:
             self._process_token(tok)
             time.sleep(0.1)
-
         return True
 
-    # Trig / math function names recognized as tokens (longest first to avoid prefix clash)
     _TRIG_FNS = [
         "arcsin", "arccos", "arctan",
         "sinh", "cosh", "tanh",
@@ -490,47 +495,36 @@ class ALEKSInputLayer:
 
     def _tokenize(self, s: str) -> list:
         """
-        Break expression into a list of typed token dicts.
+        Break expression into typed token dicts.
 
         Token types: "text", "fraction", "sqrt", "exponent",
                      "mixed", "pi", "abs", "trig"
-
-        Handles compound math expressions like:
-          y = -3sin(2pix) + 2
-          3/4 + sqrt(x^2-4)
-          2 3/5
-          |x+1|
         """
         s = s.strip()
 
-        # ── Whole-expression shortcuts ───────────────────────────────────
+        # ── Whole-expression shortcuts ────────────────────────────────────
 
-        # Pure simple fraction: digits/digits
         m = re.fullmatch(r"(-?\d+)\s*/\s*(-?\d+)", s)
         if m:
             return [{"type": "fraction", "num": m.group(1), "denom": m.group(2)}]
 
-        # Mixed number: whole space num/denom
         m = re.fullmatch(r"(-?\d+)\s+(\d+)\s*/\s*(\d+)", s)
         if m:
             return [{"type": "mixed",
                      "whole": m.group(1), "num": m.group(2), "denom": m.group(3)}]
 
-        # Top-level sqrt(...)
         m = re.fullmatch(r"sqrt\((.+)\)", s, re.IGNORECASE)
         if m:
             return [{"type": "sqrt", "radicand": m.group(1)}]
 
-        # Unicode √ whole expression
         m = re.fullmatch(r"√(.+)", s)
         if m:
             return [{"type": "sqrt", "radicand": m.group(1)}]
 
-        # Pure pi / π
         if s.lower() in ("pi", "π"):
             return [{"type": "pi"}]
 
-        # ── Character-by-character scan ──────────────────────────────────
+        # ── Character-by-character scan ───────────────────────────────────
         tokens: list = []
         buf = ""
         i = 0
@@ -542,7 +536,6 @@ class ALEKSInputLayer:
                 buf = ""
 
         def _find_matching_paren(src: str, start: int) -> int:
-            """Return index of ')' matching the '(' at src[start], or len(src)-1."""
             depth = 0
             j = start
             while j < len(src):
@@ -558,7 +551,7 @@ class ALEKSInputLayer:
         while i < len(s):
             c = s[i]
 
-            # ── sqrt(...) ────────────────────────────────────────────────
+            # ── sqrt(...) ─────────────────────────────────────────────────
             if s[i:i+4].lower() == "sqrt" and i + 4 < len(s) and s[i + 4] == "(":
                 flush()
                 close = _find_matching_paren(s, i + 4)
@@ -566,18 +559,17 @@ class ALEKSInputLayer:
                 i = close + 1
                 continue
 
-            # ── Unicode √ ────────────────────────────────────────────────
+            # ── Unicode √ ─────────────────────────────────────────────────
             if c == "√":
                 flush()
                 j = i + 1
-                # Consume until an unambiguous break char
                 while j < len(s) and s[j] not in " +\n":
                     j += 1
                 tokens.append({"type": "sqrt", "radicand": s[i + 1:j]})
                 i = j
                 continue
 
-            # ── Trig / math functions: sin(...) cos(...) etc. ────────────
+            # ── Trig / math functions: sin(...) cos(...) etc. ─────────────
             matched_fn = None
             for fn in self._TRIG_FNS:
                 fl = len(fn)
@@ -595,7 +587,7 @@ class ALEKSInputLayer:
                 i = close + 1
                 continue
 
-            # ── Absolute value |...| ─────────────────────────────────────
+            # ── Absolute value |...| ──────────────────────────────────────
             if c == "|":
                 flush()
                 j = s.find("|", i + 1)
@@ -607,18 +599,14 @@ class ALEKSInputLayer:
                     i += 1
                 continue
 
-            # ── π symbol ─────────────────────────────────────────────────
+            # ── π symbol ──────────────────────────────────────────────────
             if c == "π":
                 flush()
                 tokens.append({"type": "pi"})
                 i += 1
                 continue
 
-            # ── "pi" word ────────────────────────────────────────────────
-            # Match pi when:
-            #   • followed by non-alpha  (pi+, pi/, pi), end)  — always safe
-            #   • followed by exactly one alpha variable char   (pix, pit)
-            #     because in math "pix" = pi*x
+            # ── "pi" word ─────────────────────────────────────────────────
             if s[i:i+2].lower() == "pi":
                 after = s[i + 2] if i + 2 < len(s) else ""
                 after2 = s[i + 3] if i + 3 < len(s) else ""
@@ -630,10 +618,18 @@ class ALEKSInputLayer:
                     i += 2
                     continue
 
-            # ── Fraction via / between integer buffers ───────────────────
-            if c == "/" and buf and re.fullmatch(r"-?\d+", buf.strip()):
+            # ── Fraction via / ────────────────────────────────────────────
+            # Catches: 3/4, t/4, πt/4, 2t/3, etc.
+            # Absorbs a preceding pi token into the numerator so that
+            # "πt/4" → fraction(πt, 4) not [pi] + fraction(t, 4).
+            # This keeps π inside the fraction box rather than as a separate
+            # element that would require an extra button/keyboard click.
+            if c == "/" and buf and buf.strip():
                 num = buf.strip()
                 buf = ""
+                if tokens and tokens[-1].get("type") == "pi":
+                    tokens.pop()
+                    num = "π" + num
                 i += 1
                 denom_buf = ""
                 while i < len(s) and (s[i].isdigit() or (not denom_buf and s[i] == "-")):
@@ -645,7 +641,7 @@ class ALEKSInputLayer:
                     tokens.append({"type": "text", "value": num + "/"})
                 continue
 
-            # ── Exponent via ^ ───────────────────────────────────────────
+            # ── Exponent via ^ ────────────────────────────────────────────
             if c == "^":
                 base = buf.strip()
                 buf = ""
@@ -697,26 +693,27 @@ class ALEKSInputLayer:
 
     def _type_raw(self, text: str):
         """
-        Type plain text character by character through keyboard.type().
-
-        We MUST use keyboard.type (which fires real keydown/press/up events)
-        rather than insert_text, because ALEKS's math editor intercepts key
-        events to build its internal token tree.  insert_text bypasses those
-        handlers and produces garbage output.
+        Type plain text via keyboard.type() which fires real key events.
+        Must NOT use insert_text — ALEKS's math editor intercepts key events
+        to build its internal token tree; insert_text bypasses those handlers.
         """
         if not text:
             return
-        # keyboard.type handles unicode, shift combos, and event firing correctly.
-        # A small per-char delay makes the ALEKS editor reliably process each key.
         self.page.keyboard.type(text, delay=40)
         time.sleep(0.05)
 
     def _input_fraction(self, num: str, denom: str):
-        """Click fraction button → type numerator → Tab → type denominator → Tab."""
+        """
+        Press / keyboard shortcut → type numerator → Tab → type denominator → Tab.
+
+        Uses the keyboard shortcut ONLY (never button click) so that focus
+        stays inside any enclosing template box (e.g. the cos argument box).
+        Clicking the fraction toolbar button + _refocus() would exit a nested
+        template box and leave it empty.
+        """
         log.info(f"  fraction({num}/{denom})")
-        self._click_tool_button("fraction")
+        self.page.keyboard.press("/")
         time.sleep(0.25)
-        # Recursively tokenize each part (they may themselves contain sqrt, etc.)
         for tok in self._tokenize(num):
             self._process_token(tok)
         self.page.keyboard.press("Tab")
@@ -729,10 +726,9 @@ class ALEKSInputLayer:
     def _input_sqrt(self, radicand: str):
         """Click sqrt button → type radicand → Tab."""
         log.info(f"  sqrt({radicand})")
-        activated = self._click_tool_button("sqrt")
+        activated = self._click_tool_button("sqrt")   # refocus happens inside
         time.sleep(0.3)
         if not activated:
-            # Fallback: type as text if button not found
             self._type_raw(f"sqrt({radicand})")
             return
         for tok in self._tokenize(radicand):
@@ -741,24 +737,21 @@ class ALEKSInputLayer:
         time.sleep(0.2)
 
     def _input_exponent(self, base: str, exp: str):
-        """Type base → type ^ → type exponent → Tab."""
+        """Type base → ^ → type exponent → Tab."""
         log.info(f"  exponent({base}^{exp})")
-        # Type base
         for tok in self._tokenize(base):
             self._process_token(tok)
-        # Trigger exponent mode
         self.page.keyboard.type("^", delay=20)
         time.sleep(0.3)
-        # Type exponent
         for tok in self._tokenize(exp):
             self._process_token(tok)
         self.page.keyboard.press("Tab")
         time.sleep(0.2)
 
     def _input_mixed(self, whole: str, num: str, denom: str):
-        """Input a mixed number: whole + fraction."""
+        """Click mixed-number button → whole → Tab → num → Tab → denom → Tab."""
         log.info(f"  mixed({whole} {num}/{denom})")
-        activated = self._click_tool_button("mixed_number")
+        activated = self._click_tool_button("mixed_number")   # refocus inside
         time.sleep(0.25)
         if activated:
             self._type_raw(whole)
@@ -771,27 +764,31 @@ class ALEKSInputLayer:
             self.page.keyboard.press("Tab")
             time.sleep(0.2)
         else:
-            # Fallback: type whole, then fraction
             self._type_raw(whole)
             time.sleep(0.1)
             self._input_fraction(num, denom)
 
     def _input_pi(self):
-        """Click π button, or type the Unicode π as last resort."""
+        """
+        Click the π toolbar button, then refocus.
+        Falls back to typing π directly if button not found.
+
+        The button click is preferred (produces the proper ALEKS π token),
+        and _click_tool_button always calls _refocus() after clicking so
+        keyboard focus returns to the math editor immediately.
+        """
         log.info("  pi()")
-        activated = self._click_tool_button("pi")
+        activated = self._click_tool_button("pi")   # refocus happens inside
         if not activated:
-            # keyboard.type fires real key events; insert_text bypasses handlers
             self.page.keyboard.type("π", delay=40)
 
     def _input_absolute(self, content: str):
-        """Input |content| absolute value expression."""
+        """Click absolute-value button → type content → Tab."""
         log.info(f"  abs({content})")
-        self._click_tool_button("absolute_value")
+        self._click_tool_button("absolute_value")   # refocus inside
         time.sleep(0.2)
         for tok in self._tokenize(content):
             self._process_token(tok)
-        # Close the absolute value
         self.page.keyboard.press("Tab")
         time.sleep(0.2)
 
@@ -799,24 +796,19 @@ class ALEKSInputLayer:
         """
         Input a trig/math function call: fn(arg).
 
-        ALEKS accepts trig names typed directly (sin, cos, tan …).
-        We type the function name + '(', then process the argument
-        (which may itself contain pi, sqrt, exponents, etc.), then ')'.
+        ALEKS intercepts typing "sin"/"cos"/etc. and auto-creates a template
+        with an argument box [□].  Do NOT type "(" — that places text outside
+        the box.  Type the function name, wait for ALEKS to render the template,
+        then type the argument directly inside the box, then Tab to exit.
         """
         log.info(f"  trig({fn}({arg}))")
-        # Type function name — ALEKS recognises it as a math operator
         self.page.keyboard.type(fn, delay=40)
-        time.sleep(0.1)
-        # Open paren
-        self.page.keyboard.type("(", delay=40)
-        time.sleep(0.15)
-        # Process argument recursively
+        time.sleep(0.3)   # wait for ALEKS to render template
         for tok in self._tokenize(arg):
             self._process_token(tok)
             time.sleep(0.08)
-        # Close paren
-        self.page.keyboard.type(")", delay=40)
-        time.sleep(0.1)
+        self.page.keyboard.press("Tab")
+        time.sleep(0.2)
 
     # ═══════════════════════════════════════════════════════════════════
     #  GRAPH INPUT
@@ -827,10 +819,6 @@ class ALEKSInputLayer:
         Plot points on the ALEKS interactive graph.
 
         data = {"type": "graph", "points": [[x1,y1], [x2,y2], ...]}
-
-        If the graph is a line or curve, ALEKS typically only needs 2 points
-        (it draws the full line through them).  Extra points are ignored if
-        the problem only allows 2 clicks.
         """
         points = data.get("points", [])
         if not points:
@@ -839,34 +827,36 @@ class ALEKSInputLayer:
 
         log.info(f"  Plotting {len(points)} graph point(s): {points}")
 
-        # Locate the ALEKS graph canvas
         canvas = self.page.evaluate(r"""
             () => {
-                // ALEKS graph canvases use various class/id patterns
                 const canvas = document.querySelector(
-                    'canvas[id*="graph"], canvas[class*="graph"], '  +
-                    '[class*="graphCanvas"], [id*="graphCanvas"], '   +
+                    'canvas[id*="graph"], canvas[class*="graph"], ' +
+                    '[class*="graphCanvas"], [id*="graphCanvas"], ' +
                     'canvas[id*="aleks"], canvas'
                 );
                 if (!canvas) return null;
                 const r = canvas.getBoundingClientRect();
-                // Read grid bounds from data attributes (set by ALEKS JS)
-                const xMin = parseFloat(
-                    canvas.dataset.xMin || canvas.getAttribute('data-x-min') ||
-                    canvas.dataset.minx  || canvas.getAttribute('data-minx')  || -10);
-                const xMax = parseFloat(
-                    canvas.dataset.xMax || canvas.getAttribute('data-x-max') ||
-                    canvas.dataset.maxx  || canvas.getAttribute('data-maxx')  ||  10);
-                const yMin = parseFloat(
-                    canvas.dataset.yMin || canvas.getAttribute('data-y-min') ||
-                    canvas.dataset.miny  || canvas.getAttribute('data-miny')  || -10);
-                const yMax = parseFloat(
-                    canvas.dataset.yMax || canvas.getAttribute('data-y-max') ||
-                    canvas.dataset.maxy  || canvas.getAttribute('data-maxy')  ||  10);
+
+                // Read axis ranges from DOM data attributes — return null if absent
+                // so the Python side can ask the chatbot instead of guessing.
+                function readAttr(el, ...keys) {
+                    for (const k of keys) {
+                        const v = el.dataset[k] ?? el.getAttribute('data-' + k.replace(/([A-Z])/g, '-$1').toLowerCase());
+                        if (v !== null && v !== undefined && v !== '') {
+                            const n = parseFloat(v);
+                            if (!isNaN(n)) return n;
+                        }
+                    }
+                    return null;
+                }
+
                 return {
-                    left: r.left, top: r.top,
+                    left:  r.left,  top:    r.top,
                     width: r.width, height: r.height,
-                    xMin, xMax, yMin, yMax
+                    xMin:  readAttr(canvas, 'xMin', 'minx', 'x-min'),
+                    xMax:  readAttr(canvas, 'xMax', 'maxx', 'x-max'),
+                    yMin:  readAttr(canvas, 'yMin', 'miny', 'y-min'),
+                    yMax:  readAttr(canvas, 'yMax', 'maxy', 'y-max'),
                 };
             }
         """)
@@ -874,6 +864,30 @@ class ALEKSInputLayer:
         if not canvas:
             log.warning("  _input_graph: graph canvas not found")
             return False
+
+        # ── Ask chatbot for axis ranges if DOM data attributes are missing ─
+        missing = any(canvas.get(k) is None for k in ('xMin', 'xMax', 'yMin', 'yMax'))
+        if missing:
+            axes = None
+            if self.solver is not None:
+                try:
+                    from pathlib import Path as _Path
+                    tmp = _Path(__file__).parent / "screenshots" / "_graph_axes.png"
+                    self.page.screenshot(path=str(tmp))
+                    axes = self.solver.classify_graph_axes(tmp)
+                    try:
+                        tmp.unlink()
+                    except Exception:
+                        pass
+                except Exception as e:
+                    log.warning(f"  _input_graph: axis chatbot call failed: {e}")
+            if axes:
+                canvas.update(axes)
+                log.info(f"  _input_graph: axes from chatbot → {axes}")
+            else:
+                log.warning("  _input_graph: axis ranges unknown — defaulting to [-10, 10]")
+                canvas.setdefault('xMin', -10); canvas.setdefault('xMax', 10)
+                canvas.setdefault('yMin', -10); canvas.setdefault('yMax', 10)
 
         def _to_pixel(mx, my):
             xr = canvas["xMax"] - canvas["xMin"]
