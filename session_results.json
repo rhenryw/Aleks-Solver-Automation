@@ -1,0 +1,3521 @@
+[
+  {
+    "finished_at": "2026-04-21T17:23:04.246622",
+    "results": [
+      {
+        "n": 3,
+        "q": "Something went wrong. Try reloading the page to work on this question. If the issue persists, contact Customer Support.Question Solve for u . begin fraction u \u2212 2 over 3 end fraction = begin fraction ",
+        "a": "16/5",
+        "result": "correct",
+        "ts": "2026-04-21T17:21:59.963755"
+      },
+      {
+        "n": 4,
+        "q": "Something went wrong. Try reloading the page to work on this question. If the issue persists, contact Customer Support.Question Solve for u . begin fraction 12 over u + 4 end fraction = begin fraction",
+        "a": "10/3",
+        "result": "unknown",
+        "ts": "2026-04-21T17:22:06.202116"
+      },
+      {
+        "n": 5,
+        "q": "Something went wrong. Try reloading the page to work on this question. If the issue persists, contact Customer Support.Question Try Again Your answer is incorrect. Solve for u . begin fraction 12 over",
+        "a": "10",
+        "result": "unknown",
+        "ts": "2026-04-21T17:22:11.482712"
+      },
+      {
+        "n": 6,
+        "q": "Something went wrong. Try reloading the page to work on this question. If the issue persists, contact Customer Support.Explanation Page Incorrect. Review the explanation first, then check the Resource",
+        "a": "7/2",
+        "result": "unknown",
+        "ts": "2026-04-21T17:22:25.048411"
+      },
+      {
+        "n": 7,
+        "q": "Something went wrong. Try reloading the page to work on this question. If the issue persists, contact Customer Support.Question Solve for w . begin fraction 2 over 3 end fraction = begin fraction w \u2212 ",
+        "a": "9",
+        "result": "correct",
+        "ts": "2026-04-21T17:22:31.454199"
+      },
+      {
+        "n": 8,
+        "q": "Something went wrong. Try reloading the page to work on this question. If the issue persists, contact Customer Support.Question Solve for v . begin fraction 3 over 5 end fraction = begin fraction 4 ov",
+        "a": "14/3",
+        "result": "unknown",
+        "ts": "2026-04-21T17:22:37.339517"
+      },
+      {
+        "n": 9,
+        "q": "Something went wrong. Try reloading the page to work on this question. If the issue persists, contact Customer Support.Question Try Again Your answer is incorrect. Solve for v . begin fraction 3 over ",
+        "a": "26/3",
+        "result": "correct",
+        "ts": "2026-04-21T17:22:42.370630"
+      },
+      {
+        "n": 10,
+        "q": "Something went wrong. Try reloading the page to work on this question. If the issue persists, contact Customer Support.Question Solve for v . begin fraction v + 5 over 10 end fraction = begin fraction",
+        "a": "45/4",
+        "result": "unknown",
+        "ts": "2026-04-21T17:22:48.791275"
+      },
+      {
+        "n": 11,
+        "q": "Something went wrong. Try reloading the page to work on this question. If the issue persists, contact Customer Support.Question Try Again Your answer is incorrect. Solve for v . begin fraction v + 5 o",
+        "a": "45/4",
+        "result": "unknown",
+        "ts": "2026-04-21T17:22:54.130594"
+      },
+      {
+        "n": 12,
+        "q": "Something went wrong. Try reloading the page to work on this question. If the issue persists, contact Customer Support.Explanation Page Incorrect. Review the explanation first, then check the Resource",
+        "a": "15/4",
+        "result": "unknown",
+        "ts": "2026-04-21T17:22:59.636194"
+      }
+    ]
+  },
+  {
+    "finished_at": "2026-04-21T17:28:23.702929",
+    "results": [
+      {
+        "n": 3,
+        "q": "Something went wrong. Try reloading the page to work on this question. If the issue persists, contact Customer Support.Question Solve for y . begin fraction 8 over 5 end fraction = begin fraction 12 o",
+        "a": "25/4",
+        "result": "unknown",
+        "ts": "2026-04-21T17:28:04.377831"
+      },
+      {
+        "n": 4,
+        "q": "Something went wrong. Try reloading the page to work on this question. If the issue persists, contact Customer Support.Question Try Again Your answer is incorrect. Solve for y . begin fraction 8 over ",
+        "a": "5/2",
+        "result": "correct",
+        "ts": "2026-04-21T17:28:10.479396"
+      },
+      {
+        "n": 5,
+        "q": "Something went wrong. Try reloading the page to work on this question. If the issue persists, contact Customer Support.Question Solve for w . begin fraction w \u2212 3 over 8 end fraction = begin fraction ",
+        "a": "9",
+        "result": "correct",
+        "ts": "2026-04-21T17:28:17.164575"
+      }
+    ]
+  },
+  {
+    "finished_at": "2026-04-21T17:36:35.509648",
+    "results": [
+      {
+        "n": 3,
+        "q": "Something went wrong. Try reloading the page to work on this question. If the issue persists, contact Customer Support.Learning Page Question . begin square root 136 end square root Explanation One of",
+        "a": "2sqrt(34)",
+        "result": "unknown",
+        "ts": "2026-04-21T17:35:49.866731"
+      },
+      {
+        "n": 4,
+        "q": "Something went wrong. Try reloading the page to work on this question. If the issue persists, contact Customer Support.Learning Page Question . begin square root 136 end square root Explanation One of",
+        "a": "2sqrt(34)",
+        "result": "unknown",
+        "ts": "2026-04-21T17:35:54.255268"
+      },
+      {
+        "n": 6,
+        "q": "Skip to Main ContentEspa\u00f1olAlgebra and Geometry ReviewSimplifying the square root of a whole number greater than 100Topic Progress 0 of 3ReviewRichard0 TopicsSomething went wrong. Try reloading the pa",
+        "a": "4*sqrt(7)",
+        "result": "unknown",
+        "ts": "2026-04-21T17:36:05.454792"
+      },
+      {
+        "n": 7,
+        "q": "Skip to Main ContentEspa\u00f1olAlgebra and Geometry ReviewSimplifying the square root of a whole number greater than 100Try again...Topic Progress 0 of 3ReviewRichard0 TopicsSomething went wrong. Try relo",
+        "a": "4*sqrt(7)",
+        "result": "try_again",
+        "ts": "2026-04-21T17:36:13.141972"
+      },
+      {
+        "n": 8,
+        "q": "Skip to Main ContentEspa\u00f1olAlgebra and Geometry ReviewSimplifying the square root of a whole number greater than 100Topic Progress 0 of 3ReviewRichard0 TopicsSomething went wrong. Try reloading the pa",
+        "a": "5*sqrt(6)",
+        "result": "unknown",
+        "ts": "2026-04-21T17:36:23.357888"
+      },
+      {
+        "n": 9,
+        "q": "Skip to Main ContentEspa\u00f1olAlgebra and Geometry ReviewSimplifying the square root of a whole number greater than 100Try again...Topic Progress 0 of 3ReviewRichard0 TopicsSomething went wrong. Try relo",
+        "a": "5*sqrt(6)",
+        "result": "try_again",
+        "ts": "2026-04-21T17:36:30.941324"
+      }
+    ]
+  },
+  {
+    "finished_at": "2026-04-21T18:10:05.895892",
+    "results": [
+      {
+        "n": 3,
+        "q": "Skip to Main ContentEspa\u00f1olAlgebra and Geometry ReviewSimplifying the square root of a whole number greater than 100Topic Progress 0 of 3ReviewRichard0 TopicsSomething went wrong. Try reloading the pa",
+        "a": "10*sqrt(2)",
+        "result": "correct",
+        "ts": "2026-04-21T17:39:23.627490"
+      },
+      {
+        "n": 4,
+        "q": "Skip to Main ContentEspa\u00f1olAlgebra and Geometry ReviewSimplifying the square root of a whole number greater than 100 +1Topic Progress 1 of 3ReviewRichard0 TopicsSomething went wrong. Try reloading the",
+        "a": "3*sqrt(21)",
+        "result": "correct",
+        "ts": "2026-04-21T17:39:31.442274"
+      },
+      {
+        "n": 6,
+        "q": "Skip to Main ContentEspa\u00f1olAlgebra and Geometry ReviewSquare root multiplication: BasicTopic Progress 0 of 3ReviewRichard0 TopicsSomething went wrong. Try reloading the page to work on this question. ",
+        "a": "5*sqrt(2)",
+        "result": "correct",
+        "ts": "2026-04-21T17:39:45.601901"
+      },
+      {
+        "n": 7,
+        "q": "Skip to Main ContentEspa\u00f1olAlgebra and Geometry ReviewSquare root multiplication: Basic +1Topic Progress 1 of 3ReviewRichard0 TopicsSomething went wrong. Try reloading the page to work on this questio",
+        "a": "9",
+        "result": "correct",
+        "ts": "2026-04-21T17:39:51.845802"
+      },
+      {
+        "n": 9,
+        "q": "Skip to Main ContentEspa\u00f1olEquations and InequalitiesGraphing a compound inequality on the number lineTopic Progress 0 of 3ReviewRichard0 TopicsSomething went wrong. Try reloading the page to work on ",
+        "a": "{\"type\":\"graph\",\"asymptotes\":[],\"points\":[[-1,0],[7,0]],\"tool\":\"interval-open-open\"}",
+        "result": "incorrect",
+        "ts": "2026-04-21T17:41:05.265604"
+      },
+      {
+        "n": 10,
+        "q": "Skip to Main ContentEspa\u00f1olEquations and InequalitiesGraphing a compound inequality on the number lineTopic Progress 0 of 3ReviewRichard0 TopicsSomething went wrong. Try reloading the page to work on ",
+        "a": "{\"type\":\"graph\",\"asymptotes\":[],\"points\":[[-1,0],[7,0]],\"tool\":\"interval-open-open\"}",
+        "result": "unknown",
+        "ts": "2026-04-21T17:42:07.838379"
+      },
+      {
+        "n": 11,
+        "q": "Skip to Main ContentEspa\u00f1olEquations and InequalitiesGraphing a compound inequality on the number lineTopic Progress 0 of 3ReviewRichard0 TopicsSomething went wrong. Try reloading the page to work on ",
+        "a": "{\"type\":\"graph\",\"asymptotes\":[],\"points\":[[-1,0],[7,0]],\"tool\":\"interval-open-open\"}",
+        "result": "unknown",
+        "ts": "2026-04-21T17:43:09.884743"
+      },
+      {
+        "n": 12,
+        "q": "Skip to Main ContentEspa\u00f1olEquations and InequalitiesGraphing a compound inequality on the number lineTopic Progress 0 of 3ReviewRichard0 TopicsSomething went wrong. Try reloading the page to work on ",
+        "a": "{\"type\":\"graph\",\"asymptotes\":[],\"points\":[[-1,0],[7,0]],\"tool\":\"interval-open-open\"}",
+        "result": "unknown",
+        "ts": "2026-04-21T17:44:11.932506"
+      },
+      {
+        "n": 13,
+        "q": "Skip to Main ContentEspa\u00f1olEquations and InequalitiesGraphing a compound inequality on the number lineTopic Progress 0 of 3ReviewRichard0 TopicsSomething went wrong. Try reloading the page to work on ",
+        "a": "{\"type\":\"graph\",\"asymptotes\":[],\"points\":[[-1,0],[7,0]],\"tool\":\"interval-open-open\"}",
+        "result": "unknown",
+        "ts": "2026-04-21T17:45:13.986209"
+      },
+      {
+        "n": 14,
+        "q": "Skip to Main ContentEspa\u00f1olEquations and InequalitiesGraphing a compound inequality on the number lineTopic Progress 0 of 3ReviewRichard0 TopicsSomething went wrong. Try reloading the page to work on ",
+        "a": "{\"type\":\"graph\",\"asymptotes\":[],\"points\":[[-1,0],[7,0]],\"tool\":\"interval-open-open\"}",
+        "result": "unknown",
+        "ts": "2026-04-21T17:46:16.041647"
+      },
+      {
+        "n": 15,
+        "q": "Skip to Main ContentEspa\u00f1olEquations and InequalitiesGraphing a compound inequality on the number lineTopic Progress 0 of 3ReviewRichard0 TopicsSomething went wrong. Try reloading the page to work on ",
+        "a": "{\"type\":\"graph\",\"asymptotes\":[],\"points\":[[-1,0],[7,0]],\"tool\":\"interval-open-open\"}",
+        "result": "unknown",
+        "ts": "2026-04-21T17:47:18.096157"
+      },
+      {
+        "n": 16,
+        "q": "Skip to Main ContentEspa\u00f1olEquations and InequalitiesGraphing a compound inequality on the number lineTopic Progress 0 of 3ReviewRichard0 TopicsSomething went wrong. Try reloading the page to work on ",
+        "a": "{\"type\":\"graph\",\"asymptotes\":[],\"points\":[[-1,0],[7,0]],\"tool\":\"interval-open-open\"}",
+        "result": "unknown",
+        "ts": "2026-04-21T17:48:20.158604"
+      },
+      {
+        "n": 17,
+        "q": "Skip to Main ContentEspa\u00f1olEquations and InequalitiesGraphing a compound inequality on the number lineTopic Progress 0 of 3ReviewRichard0 TopicsSomething went wrong. Try reloading the page to work on ",
+        "a": "{\"type\":\"graph\",\"asymptotes\":[],\"points\":[[-1,0],[7,0]],\"tool\":\"interval-open-open\"}",
+        "result": "unknown",
+        "ts": "2026-04-21T17:49:22.232616"
+      },
+      {
+        "n": 18,
+        "q": "Skip to Main ContentEspa\u00f1olEquations and InequalitiesGraphing a compound inequality on the number lineTopic Progress 0 of 3ReviewRichard0 TopicsSomething went wrong. Try reloading the page to work on ",
+        "a": "{\"type\":\"graph\",\"asymptotes\":[],\"points\":[[-1,0],[7,0]],\"tool\":\"interval-open-open\"}",
+        "result": "unknown",
+        "ts": "2026-04-21T17:50:24.285498"
+      },
+      {
+        "n": 19,
+        "q": "Skip to Main ContentEspa\u00f1olEquations and InequalitiesGraphing a compound inequality on the number lineTopic Progress 0 of 3ReviewRichard0 TopicsSomething went wrong. Try reloading the page to work on ",
+        "a": "{\"type\":\"graph\",\"asymptotes\":[],\"points\":[[-1,0],[7,0]],\"tool\":\"interval-open-open\"}",
+        "result": "unknown",
+        "ts": "2026-04-21T17:51:26.340015"
+      },
+      {
+        "n": 20,
+        "q": "Skip to Main ContentEspa\u00f1olEquations and InequalitiesGraphing a compound inequality on the number lineTopic Progress 0 of 3ReviewRichard0 TopicsSomething went wrong. Try reloading the page to work on ",
+        "a": "{\"type\":\"graph\",\"asymptotes\":[],\"points\":[[-1,0],[7,0]],\"tool\":\"interval-open-open\"}",
+        "result": "unknown",
+        "ts": "2026-04-21T17:52:28.399123"
+      },
+      {
+        "n": 21,
+        "q": "Skip to Main ContentEspa\u00f1olEquations and InequalitiesGraphing a compound inequality on the number lineTopic Progress 0 of 3ReviewRichard0 TopicsSomething went wrong. Try reloading the page to work on ",
+        "a": "{\"type\":\"graph\",\"asymptotes\":[],\"points\":[[-1,0],[7,0]],\"tool\":\"interval-open-open\"}",
+        "result": "unknown",
+        "ts": "2026-04-21T17:53:30.455142"
+      },
+      {
+        "n": 22,
+        "q": "Skip to Main ContentEspa\u00f1olEquations and InequalitiesGraphing a compound inequality on the number lineTopic Progress 0 of 3ReviewRichard0 TopicsSomething went wrong. Try reloading the page to work on ",
+        "a": "{\"type\":\"graph\",\"asymptotes\":[],\"points\":[[-1,0],[7,0]],\"tool\":\"interval-open-open\"}",
+        "result": "unknown",
+        "ts": "2026-04-21T17:54:32.512370"
+      },
+      {
+        "n": 23,
+        "q": "Skip to Main ContentEspa\u00f1olEquations and InequalitiesGraphing a compound inequality on the number lineTopic Progress 0 of 3ReviewRichard0 TopicsSomething went wrong. Try reloading the page to work on ",
+        "a": "{\"type\":\"graph\",\"asymptotes\":[],\"points\":[[-1,0],[7,0]],\"tool\":\"interval-open-open\"}",
+        "result": "unknown",
+        "ts": "2026-04-21T17:55:34.566575"
+      },
+      {
+        "n": 24,
+        "q": "Skip to Main ContentEspa\u00f1olEquations and InequalitiesGraphing a compound inequality on the number lineTopic Progress 0 of 3ReviewRichard0 TopicsSomething went wrong. Try reloading the page to work on ",
+        "a": "{\"type\":\"graph\",\"asymptotes\":[],\"points\":[[-1,0],[7,0]],\"tool\":\"interval-open-open\"}",
+        "result": "unknown",
+        "ts": "2026-04-21T17:56:36.621422"
+      },
+      {
+        "n": 25,
+        "q": "Skip to Main ContentEspa\u00f1olEquations and InequalitiesGraphing a compound inequality on the number lineTopic Progress 0 of 3ReviewRichard0 TopicsSomething went wrong. Try reloading the page to work on ",
+        "a": "{\"type\":\"graph\",\"asymptotes\":[],\"points\":[[-1,0],[7,0]],\"tool\":\"interval-open-open\"}",
+        "result": "unknown",
+        "ts": "2026-04-21T17:57:38.678728"
+      },
+      {
+        "n": 26,
+        "q": "Skip to Main ContentEspa\u00f1olEquations and InequalitiesGraphing a compound inequality on the number lineTopic Progress 0 of 3ReviewRichard0 TopicsSomething went wrong. Try reloading the page to work on ",
+        "a": "{\"type\":\"graph\",\"asymptotes\":[],\"points\":[[-1,0],[7,0]],\"tool\":\"interval-open-open\"}",
+        "result": "unknown",
+        "ts": "2026-04-21T17:58:40.736063"
+      },
+      {
+        "n": 27,
+        "q": "Skip to Main ContentEspa\u00f1olEquations and InequalitiesGraphing a compound inequality on the number lineTopic Progress 0 of 3ReviewRichard0 TopicsSomething went wrong. Try reloading the page to work on ",
+        "a": "{\"type\":\"graph\",\"asymptotes\":[],\"points\":[[-1,0],[7,0]],\"tool\":\"interval-open-open\"}",
+        "result": "unknown",
+        "ts": "2026-04-21T17:59:42.792887"
+      },
+      {
+        "n": 28,
+        "q": "Skip to Main ContentEspa\u00f1olEquations and InequalitiesGraphing a compound inequality on the number lineTopic Progress 0 of 3ReviewRichard0 TopicsSomething went wrong. Try reloading the page to work on ",
+        "a": "{\"type\":\"graph\",\"asymptotes\":[],\"points\":[[-1,0],[7,0]],\"tool\":\"interval-open-open\"}",
+        "result": "unknown",
+        "ts": "2026-04-21T18:00:44.848334"
+      },
+      {
+        "n": 29,
+        "q": "Skip to Main ContentEspa\u00f1olEquations and InequalitiesGraphing a compound inequality on the number lineTopic Progress 0 of 3ReviewRichard0 TopicsSomething went wrong. Try reloading the page to work on ",
+        "a": "{\"type\":\"graph\",\"asymptotes\":[],\"points\":[[-1,0],[7,0]],\"tool\":\"interval-open-open\"}",
+        "result": "unknown",
+        "ts": "2026-04-21T18:01:46.901700"
+      },
+      {
+        "n": 30,
+        "q": "Skip to Main ContentEspa\u00f1olEquations and InequalitiesGraphing a compound inequality on the number lineTopic Progress 0 of 3ReviewRichard0 TopicsSomething went wrong. Try reloading the page to work on ",
+        "a": "{\"type\":\"graph\",\"asymptotes\":[],\"points\":[[-1,0],[7,0]],\"tool\":\"interval-open-open\"}",
+        "result": "unknown",
+        "ts": "2026-04-21T18:02:48.952632"
+      },
+      {
+        "n": 31,
+        "q": "Skip to Main ContentEspa\u00f1olEquations and InequalitiesGraphing a compound inequality on the number lineTopic Progress 0 of 3ReviewRichard0 TopicsSomething went wrong. Try reloading the page to work on ",
+        "a": "{\"type\":\"graph\",\"asymptotes\":[],\"points\":[[-1,0],[7,0]],\"tool\":\"interval-open-open\"}",
+        "result": "unknown",
+        "ts": "2026-04-21T18:03:51.002530"
+      },
+      {
+        "n": 32,
+        "q": "Skip to Main ContentEspa\u00f1olEquations and InequalitiesGraphing a compound inequality on the number lineTopic Progress 0 of 3ReviewRichard0 TopicsSomething went wrong. Try reloading the page to work on ",
+        "a": "{\"type\":\"graph\",\"asymptotes\":[],\"points\":[[-1,0],[7,0]],\"tool\":\"interval-open-open\"}",
+        "result": "unknown",
+        "ts": "2026-04-21T18:04:53.059366"
+      },
+      {
+        "n": 33,
+        "q": "Skip to Main ContentEspa\u00f1olEquations and InequalitiesGraphing a compound inequality on the number lineTopic Progress 0 of 3ReviewRichard0 TopicsSomething went wrong. Try reloading the page to work on ",
+        "a": "{\"type\":\"graph\",\"asymptotes\":[],\"points\":[[-1,0],[7,0]],\"tool\":\"interval-open-open\"}",
+        "result": "unknown",
+        "ts": "2026-04-21T18:05:55.132982"
+      },
+      {
+        "n": 34,
+        "q": "Skip to Main ContentEspa\u00f1olEquations and InequalitiesGraphing a compound inequality on the number lineTopic Progress 0 of 3ReviewRichard0 TopicsSomething went wrong. Try reloading the page to work on ",
+        "a": "{\"type\":\"graph\",\"asymptotes\":[],\"points\":[[-1,0],[7,0]],\"tool\":\"interval-open-open\"}",
+        "result": "unknown",
+        "ts": "2026-04-21T18:06:57.187000"
+      },
+      {
+        "n": 35,
+        "q": "Skip to Main ContentEspa\u00f1olEquations and InequalitiesGraphing a compound inequality on the number lineTopic Progress 0 of 3ReviewRichard0 TopicsSomething went wrong. Try reloading the page to work on ",
+        "a": "{\"type\":\"graph\",\"asymptotes\":[],\"points\":[[-1,0],[7,0]],\"tool\":\"interval-open-open\"}",
+        "result": "unknown",
+        "ts": "2026-04-21T18:07:59.240953"
+      },
+      {
+        "n": 36,
+        "q": "Skip to Main ContentEspa\u00f1olEquations and InequalitiesGraphing a compound inequality on the number lineTopic Progress 0 of 3ReviewRichard0 TopicsSomething went wrong. Try reloading the page to work on ",
+        "a": "{\"type\":\"graph\",\"asymptotes\":[],\"points\":[[-1,0],[7,0]],\"tool\":\"interval-open-open\"}",
+        "result": "unknown",
+        "ts": "2026-04-21T18:09:01.294774"
+      },
+      {
+        "n": 37,
+        "q": "Skip to Main ContentEspa\u00f1olEquations and InequalitiesGraphing a compound inequality on the number lineTopic Progress 0 of 3ReviewRichard0 TopicsSomething went wrong. Try reloading the page to work on ",
+        "a": "{\"type\":\"graph\",\"asymptotes\":[],\"points\":[[-1,0],[7,0]],\"tool\":\"interval-open-open\"}",
+        "result": "unknown",
+        "ts": "2026-04-21T18:10:00.213671"
+      }
+    ]
+  },
+  {
+    "finished_at": "2026-04-21T18:26:03.506494",
+    "results": [
+      {
+        "n": 3,
+        "q": "Skip to Main ContentEspa\u00f1olEquations and InequalitiesGraphing a compound inequality on the number lineTopic Progress 1 of 3ReviewRichard0 TopicsSomething went wrong. Try reloading the page to work on ",
+        "a": "{\"type\":\"numberline\",\"points\":[{\"x\":-8,\"open\":true},{\"x\":5,\"open\":false}],\"segments\":[{\"from\":\"-inf\",\"to\":-8},{\"from\":5,\"to\":\"+inf\"}]}",
+        "result": "unknown",
+        "ts": "2026-04-21T18:25:54.888393"
+      }
+    ]
+  },
+  {
+    "finished_at": "2026-04-21T18:31:55.413341",
+    "results": [
+      {
+        "n": 3,
+        "q": "Skip to Main ContentEspa\u00f1olEquations and InequalitiesGraphing a compound inequality on the number lineTopic Progress 0 of 3ReviewRichard0 TopicsSomething went wrong. Try reloading the page to work on ",
+        "a": "{\"type\":\"numberline\",\"points\":[{\"x\":-8,\"open\":true},{\"x\":5,\"open\":false}],\"segments\":[{\"from\":\"-inf\",\"to\":-8},{\"from\":5,\"to\":\"+inf\"}]}",
+        "result": "try_again",
+        "ts": "2026-04-21T18:29:10.732903"
+      },
+      {
+        "n": 4,
+        "q": "Skip to Main ContentEspa\u00f1olEquations and InequalitiesGraphing a compound inequality on the number lineTopic Progress 0 of 3ReviewRichard0 TopicsSomething went wrong. Try reloading the page to work on ",
+        "a": "{\"type\":\"numberline\",\"points\":[{\"x\":-6,\"open\":true},{\"x\":4,\"open\":false}],\"segments\":[{\"from\":-6,\"to\":4}]}",
+        "result": "correct",
+        "ts": "2026-04-21T18:29:24.121099"
+      },
+      {
+        "n": 5,
+        "q": "Skip to Main ContentEspa\u00f1olEquations and InequalitiesGraphing a compound inequality on the number line +1Topic Progress 1 of 3ReviewRichard0 TopicsSomething went wrong. Try reloading the page to work ",
+        "a": "{\"type\":\"numberline\",\"points\":[{\"x\":-1,\"open\":true},{\"x\":2,\"open\":false}],\"segments\":[{\"from\":-1,\"to\":2}]}",
+        "result": "correct",
+        "ts": "2026-04-21T18:29:35.075242"
+      },
+      {
+        "n": 7,
+        "q": "Skip to Main ContentEspa\u00f1olAlgebra and Geometry ReviewFactoring a difference of squares in one variable: BasicTopic Progress 0 of 3ReviewRichard0 TopicsSomething went wrong. Try reloading the page to ",
+        "a": "(u-3)*(u+3)",
+        "result": "correct",
+        "ts": "2026-04-21T18:29:50.837380"
+      },
+      {
+        "n": 8,
+        "q": "Skip to Main ContentEspa\u00f1olAlgebra and Geometry ReviewFactoring a difference of squares in one variable: Basic +1Topic Progress 1 of 3ReviewRichard0 TopicsSomething went wrong. Try reloading the page ",
+        "a": "(2-u)*(2+u)",
+        "result": "correct",
+        "ts": "2026-04-21T18:30:00.549315"
+      },
+      {
+        "n": 10,
+        "q": "Skip to Main ContentEspa\u00f1olEquations and InequalitiesFinding the roots of a quadratic equation with leading coefficient 1Topic Progress 0 of 3ReviewRichard0 TopicsSomething went wrong. Try reloading t",
+        "a": "-1,-2",
+        "result": "unknown",
+        "ts": "2026-04-21T18:30:14.816929"
+      },
+      {
+        "n": 11,
+        "q": "Skip to Main ContentEspa\u00f1olEquations and InequalitiesFinding the roots of a quadratic equation with leading coefficient 1Try again...Topic Progress 0 of 3ReviewRichard0 TopicsSomething went wrong. Try",
+        "a": "-1,-2",
+        "result": "try_again",
+        "ts": "2026-04-21T18:30:20.443893"
+      },
+      {
+        "n": 12,
+        "q": "Skip to Main ContentEspa\u00f1olEquations and InequalitiesFinding the roots of a quadratic equation with leading coefficient 1Topic Progress 0 of 3ReviewRichard0 TopicsSomething went wrong. Try reloading t",
+        "a": "4",
+        "result": "correct",
+        "ts": "2026-04-21T18:30:26.395605"
+      },
+      {
+        "n": 13,
+        "q": "Skip to Main ContentEspa\u00f1olEquations and InequalitiesFinding the roots of a quadratic equation with leading coefficient 1 +1Topic Progress 1 of 3ReviewRichard0 TopicsSomething went wrong. Try reloadin",
+        "a": "-1,2",
+        "result": "unknown",
+        "ts": "2026-04-21T18:30:34.282148"
+      },
+      {
+        "n": 14,
+        "q": "Skip to Main ContentEspa\u00f1olEquations and InequalitiesFinding the roots of a quadratic equation with leading coefficient 1Try again... -1Topic Progress 0 of 3ReviewRichard0 TopicsSomething went wrong. ",
+        "a": "-1,2",
+        "result": "try_again",
+        "ts": "2026-04-21T18:30:39.825549"
+      },
+      {
+        "n": 15,
+        "q": "Skip to Main ContentEspa\u00f1olEquations and InequalitiesFinding the roots of a quadratic equation with leading coefficient 1 -1Topic Progress 0 of 3ReviewRichard0 TopicsSomething went wrong. Try reloadin",
+        "a": "3,-6",
+        "result": "unknown",
+        "ts": "2026-04-21T18:30:47.481213"
+      },
+      {
+        "n": 16,
+        "q": "Skip to Main ContentEspa\u00f1olEquations and InequalitiesFinding the roots of a quadratic equation with leading coefficient 1Try again... -1Topic Progress 0 of 3ReviewRichard0 TopicsSomething went wrong. ",
+        "a": "-6,3",
+        "result": "try_again",
+        "ts": "2026-04-21T18:30:53.202090"
+      },
+      {
+        "n": 17,
+        "q": "Skip to Main ContentEspa\u00f1olEquations and InequalitiesFinding the roots of a quadratic equation with leading coefficient 1 -1Topic Progress 0 of 3ReviewRichard0 TopicsSomething went wrong. Try reloadin",
+        "a": "2",
+        "result": "correct",
+        "ts": "2026-04-21T18:30:59.299887"
+      },
+      {
+        "n": 18,
+        "q": "Skip to Main ContentEspa\u00f1olEquations and InequalitiesFinding the roots of a quadratic equation with leading coefficient 1 +1Topic Progress 1 of 3ReviewRichard0 TopicsSomething went wrong. Try reloadin",
+        "a": "-4,-5",
+        "result": "unknown",
+        "ts": "2026-04-21T18:31:07.069076"
+      },
+      {
+        "n": 19,
+        "q": "Skip to Main ContentEspa\u00f1olEquations and InequalitiesFinding the roots of a quadratic equation with leading coefficient 1Try again... -1Topic Progress 0 of 3ReviewRichard0 TopicsSomething went wrong. ",
+        "a": "-5,-4",
+        "result": "try_again",
+        "ts": "2026-04-21T18:31:13.049120"
+      },
+      {
+        "n": 20,
+        "q": "Skip to Main ContentEspa\u00f1olEquations and InequalitiesFinding the roots of a quadratic equation with leading coefficient 1 -1Topic Progress 0 of 3ReviewRichard0 TopicsSomething went wrong. Try reloadin",
+        "a": "-4,2",
+        "result": "unknown",
+        "ts": "2026-04-21T18:31:22.704437"
+      },
+      {
+        "n": 21,
+        "q": "Skip to Main ContentEspa\u00f1olEquations and InequalitiesFinding the roots of a quadratic equation with leading coefficient 1Try again... -1Topic Progress 0 of 3ReviewRichard0 TopicsSomething went wrong. ",
+        "a": "-4,2",
+        "result": "try_again",
+        "ts": "2026-04-21T18:31:28.340254"
+      },
+      {
+        "n": 22,
+        "q": "Skip to Main ContentEspa\u00f1olEquations and InequalitiesFinding the roots of a quadratic equation with leading coefficient 1 -1Topic Progress 0 of 3ReviewRichard0 TopicsSomething went wrong. Try reloadin",
+        "a": "-2,-3",
+        "result": "unknown",
+        "ts": "2026-04-21T18:31:36.327063"
+      },
+      {
+        "n": 23,
+        "q": "Skip to Main ContentEspa\u00f1olEquations and InequalitiesFinding the roots of a quadratic equation with leading coefficient 1 -1Topic Progress 0 of 3ReviewRichard79 TopicsSomething went wrong. Try reloadi",
+        "a": "-2,-3",
+        "result": "unknown",
+        "ts": "2026-04-21T18:31:48.853170"
+      },
+      {
+        "n": 24,
+        "q": "Skip to Main ContentEspa\u00f1olEquations and InequalitiesFinding the roots of a quadratic equation with leading coefficient 1Try again...Topic Progress 0 of 5ReviewRichard79 TopicsSomething went wrong. Tr",
+        "a": "-3,7",
+        "result": "try_again",
+        "ts": "2026-04-21T18:31:54.350671"
+      }
+    ]
+  },
+  {
+    "finished_at": "2026-04-21T18:49:34.829115",
+    "results": [
+      {
+        "n": 3,
+        "q": "Solve the inequality for x . \u2212 2 > \u2212 6 + 2 x Simplify your answer as much as possible.",
+        "a": "x<2",
+        "result": "correct",
+        "ts": "2026-04-21T18:46:29.039807"
+      },
+      {
+        "n": 4,
+        "q": "Solve the inequality for x . 7 + begin fraction x over 6 end fraction \u2265 3 Simplify your answer as much as possible.",
+        "a": "x >= -24",
+        "result": "unknown",
+        "ts": "2026-04-21T18:46:38.737925"
+      },
+      {
+        "n": 5,
+        "q": "Solve the inequality for x . 7 + begin fraction x over 6 end fraction \u2265 3 Simplify your answer as much as possible.",
+        "a": "x >= -24",
+        "result": "try_again",
+        "ts": "2026-04-21T18:46:45.075130"
+      },
+      {
+        "n": 6,
+        "q": "Solve the inequality for x . \u2212 16 less 4 x \u2212 4 Simplify your answer as much as possible.",
+        "a": "3",
+        "result": "unknown",
+        "ts": "2026-04-21T18:46:55.948796"
+      },
+      {
+        "n": 7,
+        "q": "Solve the inequality for x . \u2212 16 less 4 x \u2212 4 Simplify your answer as much as possible.",
+        "a": "{\"type\":\"numberline\",\"points\":[{\"x\":3,\"open\":false}],\"segments\":[{\"from\":3,\"to\":\"+inf\"}]}",
+        "result": "try_again",
+        "ts": "2026-04-21T18:47:00.728390"
+      },
+      {
+        "n": 8,
+        "q": "Solve the inequality for x . \u2212 3 + begin fraction x over 2 end fraction \u2264 \u2212 1 Simplify your answer as much as possible.",
+        "a": "4",
+        "result": "unknown",
+        "ts": "2026-04-21T18:47:08.035078"
+      },
+      {
+        "n": 9,
+        "q": "Solve the inequality for x . \u2212 3 + begin fraction x over 2 end fraction \u2264 \u2212 1 Simplify your answer as much as possible.",
+        "a": "4",
+        "result": "unknown",
+        "ts": "2026-04-21T18:47:39.843460"
+      },
+      {
+        "n": 10,
+        "q": "Solve the inequality for x . \u2212 3 + begin fraction x over 2 end fraction \u2264 \u2212 1 Simplify your answer as much as possible.",
+        "a": "4",
+        "result": "unknown",
+        "ts": "2026-04-21T18:48:11.649014"
+      },
+      {
+        "n": 11,
+        "q": "Solve the inequality for x . \u2212 3 + begin fraction x over 2 end fraction \u2264 \u2212 1 Simplify your answer as much as possible.",
+        "a": "4",
+        "result": "unknown",
+        "ts": "2026-04-21T18:48:43.447418"
+      },
+      {
+        "n": 12,
+        "q": "Solve the inequality for x . \u2212 3 + begin fraction x over 2 end fraction \u2264 \u2212 1 Simplify your answer as much as possible.",
+        "a": "4",
+        "result": "unknown",
+        "ts": "2026-04-21T18:49:15.255038"
+      },
+      {
+        "n": 13,
+        "q": "Solve the inequality for x . \u2212 3 + begin fraction x over 2 end fraction \u2264 \u2212 1 Simplify your answer as much as possible.",
+        "a": "{\"type\":\"numberline\",\"points\":[{\"x\":4,\"open\":false}],\"segments\":[{\"from\":4,\"to\":\"+inf\"}]}",
+        "result": "unknown",
+        "ts": "2026-04-21T18:49:28.215383"
+      }
+    ]
+  },
+  {
+    "finished_at": "2026-04-21T18:52:14.718240",
+    "results": [
+      {
+        "n": 3,
+        "q": "for v . \u2212 begin fraction 3 over 5 end fraction \u2212 begin fraction 4 over 7 end fraction v = \u2212 begin fraction 1 over 2 end fraction your answer as much as possible.",
+        "a": "-7/8",
+        "result": "unknown",
+        "ts": "2026-04-21T18:51:24.485600"
+      },
+      {
+        "n": 4,
+        "q": "for v . \u2212 begin fraction 3 over 5 end fraction \u2212 begin fraction 4 over 7 end fraction v = \u2212 begin fraction 1 over 2 end fraction your answer as much as possible.",
+        "a": "-7/8",
+        "result": "unknown",
+        "ts": "2026-04-21T18:51:32.159173"
+      },
+      {
+        "n": 6,
+        "q": "Solve for u . \u2212 begin fraction 2 over 5 end fraction u \u2212 begin fraction 3 over 4 end fraction = \u2212 begin fraction 4 over 3 end fraction Simplify your answer as much as possible.",
+        "a": "35/24",
+        "result": "correct",
+        "ts": "2026-04-21T18:51:41.184850"
+      },
+      {
+        "n": 7,
+        "q": "Solve for v . \u2212 begin fraction 3 over 8 end fraction = \u2212 begin fraction 9 over 4 end fraction v + begin fraction 3 over 2 end fraction Simplify your answer as much as possible.",
+        "a": "7/6",
+        "result": "unknown",
+        "ts": "2026-04-21T18:51:49.593731"
+      },
+      {
+        "n": 8,
+        "q": "Solve for v . \u2212 begin fraction 3 over 8 end fraction = \u2212 begin fraction 9 over 4 end fraction v + begin fraction 3 over 2 end fraction Simplify your answer as much as possible.",
+        "a": "7/6",
+        "result": "try_again",
+        "ts": "2026-04-21T18:51:54.652090"
+      },
+      {
+        "n": 9,
+        "q": "Solve for x . \u2212 begin fraction 2 over 3 end fraction + begin fraction 4 over 5 end fraction x = \u2212 begin fraction 3 over 2 end fraction Simplify your answer as much as possible.",
+        "a": "-15/8",
+        "result": "unknown",
+        "ts": "2026-04-21T18:52:03.609438"
+      },
+      {
+        "n": 10,
+        "q": "Solve for x . \u2212 begin fraction 2 over 3 end fraction + begin fraction 4 over 5 end fraction x = \u2212 begin fraction 3 over 2 end fraction Simplify your answer as much as possible.",
+        "a": "-15/8",
+        "result": "unknown",
+        "ts": "2026-04-21T18:52:10.660986"
+      }
+    ]
+  },
+  {
+    "finished_at": "2026-04-21T19:08:07.861406",
+    "results": [
+      {
+        "n": 3,
+        "q": "Graph the set { x such that - 5 less x <= 2 } on the number line. Then, write the set using interval notation.",
+        "a": "{\"type\":\"numberline\",\"points\":[{\"x\":-5,\"open\":true},{\"x\":2,\"open\":false}],\"segments\":[{\"from\":-5,\"to\":2}]}",
+        "result": "unknown",
+        "ts": "2026-04-21T19:07:54.672926"
+      },
+      {
+        "n": 4,
+        "q": "Graph the set { x such that - 5 <= x <= - 2 } on the number line. Then, write the set using interval notation.",
+        "a": "[-5,-2]",
+        "result": "unknown",
+        "ts": "2026-04-21T19:08:03.002685"
+      }
+    ]
+  },
+  {
+    "finished_at": "2026-04-21T19:11:04.455482",
+    "results": [
+      {
+        "n": 3,
+        "q": "Graph the set { x such that - 5 <= x <= - 2 } on the number line. Then, write the set using interval notation.",
+        "a": "{\"type\":\"numberline\",\"points\":[{\"x\":-5,\"open\":false},{\"x\":-2,\"open\":false}],\"segments\":[{\"from\":-5,\"to\":-2}],\"interval\":\"[-5,-2]\"}",
+        "result": "unknown",
+        "ts": "2026-04-21T19:10:47.092396"
+      },
+      {
+        "n": 4,
+        "q": "Graph the set { x such that - 5 <= x <= - 2 } on the number line. Then, write the set using interval notation.",
+        "a": "{\"type\":\"numberline\",\"points\":[{\"x\":-5,\"open\":false},{\"x\":-2,\"open\":false}],\"segments\":[{\"from\":-5,\"to\":-2}],\"interval\":\"[-5,-2]\"}",
+        "result": "try_again",
+        "ts": "2026-04-21T19:10:54.110882"
+      },
+      {
+        "n": 5,
+        "q": "Graph the set { x such that - 5 <= x less - 1 } on the number line. Then, write the set using interval notation.",
+        "a": "{\"type\":\"numberline\",\"points\":[{\"x\":-5,\"open\":false},{\"x\":-1,\"open\":true}],\"segments\":[{\"from\":-5,\"to\":-1}],\"interval\":\"[-5,-1)\"}",
+        "result": "unknown",
+        "ts": "2026-04-21T19:11:03.578900"
+      }
+    ]
+  },
+  {
+    "finished_at": "2026-04-21T19:18:39.463922",
+    "results": [
+      {
+        "n": 3,
+        "q": "Graph the set { x such that x less - 5 } on the number line. Then, write the set using interval notation.",
+        "a": "{\"type\":\"numberline\",\"points\":[{\"x\":-5,\"open\":true}],\"segments\":[{\"from\":\"-inf\",\"to\":-5}],\"interval\":\"(-inf,-5)\"}",
+        "result": "unknown",
+        "ts": "2026-04-21T19:18:20.150624"
+      },
+      {
+        "n": 4,
+        "q": "Graph the set { x such that x less - 5 } on the number line. Then, write the set using interval notation.",
+        "a": "{\"type\":\"numberline\",\"points\":[{\"x\":-5,\"open\":true}],\"segments\":[{\"from\":\"-inf\",\"to\":-5}],\"interval\":\"(-inf,-5)\"}",
+        "result": "try_again",
+        "ts": "2026-04-21T19:18:34.237744"
+      },
+      {
+        "n": 5,
+        "q": "Graph the set { x such that x >= 5 } on the number line. Then, write the set using interval notation.",
+        "a": "{\"type\":\"numberline\",\"points\":[{\"x\":5,\"open\":false}],\"segments\":[{\"from\":5,\"to\":\"+inf\"}],\"interval\":\"[5,+inf)\"}",
+        "result": "unknown",
+        "ts": "2026-04-21T19:18:38.010788"
+      }
+    ]
+  },
+  {
+    "finished_at": "2026-04-21T19:25:47.918247",
+    "results": [
+      {
+        "n": 3,
+        "q": ". (x - 5)/(x begin superscript 2 end superscript + x - 30)",
+        "a": "1/(x+6)",
+        "result": "unknown",
+        "ts": "2026-04-21T19:23:52.800544"
+      },
+      {
+        "n": 5,
+        "q": "Simplify. (v - 8)/(v begin superscript 2 end superscript - 2 v - 48)",
+        "a": "1/(v+6)",
+        "result": "correct",
+        "ts": "2026-04-21T19:24:01.733870"
+      },
+      {
+        "n": 6,
+        "q": "Simplify. (u begin superscript 2 end superscript - 36)/(u + 6)",
+        "a": "u-6",
+        "result": "correct",
+        "ts": "2026-04-21T19:24:40.239879"
+      },
+      {
+        "n": 7,
+        "q": "Simplify. (x - 3)/(x begin superscript 2 end superscript - 6 x + 9)",
+        "a": "1/(x-3)",
+        "result": "correct",
+        "ts": "2026-04-21T19:24:48.022179"
+      },
+      {
+        "n": 9,
+        "q": "Solve y begin superscript 2 end superscript = 16 , where y is a real number. Simplify your answer as much as possible. If there is more than one solution, separate them with commas. If there is no sol",
+        "a": "-4,4",
+        "result": "unknown",
+        "ts": "2026-04-21T19:25:02.312674"
+      },
+      {
+        "n": 10,
+        "q": "Solve y begin superscript 2 end superscript = 16 , where y is a real number. Simplify your answer as much as possible. If there is more than one solution, separate them with commas. If there is no sol",
+        "a": "-4,4",
+        "result": "try_again",
+        "ts": "2026-04-21T19:25:06.795394"
+      },
+      {
+        "n": 11,
+        "q": "Solve u begin superscript 2 end superscript = - 4 , where u is a real number. Simplify your answer as much as possible. If there is more than one solution, separate them with commas. If there is no so",
+        "a": "No solution",
+        "result": "unknown",
+        "ts": "2026-04-21T19:25:25.113231"
+      },
+      {
+        "n": 12,
+        "q": "Solve u begin superscript 2 end superscript = - 4 , where u is a real number. Simplify your answer as much as possible. If there is more than one solution, separate them with commas. If there is no so",
+        "a": "No solution",
+        "result": "try_again",
+        "ts": "2026-04-21T19:25:40.555959"
+      },
+      {
+        "n": 13,
+        "q": "Solve v begin superscript 2 end superscript = 36 , where v is a real number. Simplify your answer as much as possible. If there is more than one solution, separate them with commas. If there is no sol",
+        "a": "-6,6",
+        "result": "unknown",
+        "ts": "2026-04-21T19:25:44.061335"
+      }
+    ]
+  },
+  {
+    "finished_at": "2026-04-21T19:30:48.901774",
+    "results": [
+      {
+        "n": 3,
+        "q": "Multiply. begin square root 2 end square root ( begin square root 3 end square root + 9 ) your answer as much as possible.",
+        "a": "sqrt(6)+9*sqrt(2)",
+        "result": "unknown",
+        "ts": "2026-04-21T19:30:03.047116"
+      },
+      {
+        "n": 4,
+        "q": "Multiply. begin square root 2 end square root ( begin square root 3 end square root + 9 ) your answer as much as possible.",
+        "a": "sqrt(6)+9*sqrt(2)",
+        "result": "unknown",
+        "ts": "2026-04-21T19:30:08.293310"
+      },
+      {
+        "n": 5,
+        "q": "Multiply. begin square root 2 end square root ( begin square root 3 end square root + 9 ) your answer as much as possible.",
+        "a": "sqrt(6)+9*sqrt(2)",
+        "result": "unknown",
+        "ts": "2026-04-21T19:30:13.577130"
+      },
+      {
+        "n": 6,
+        "q": "Multiply. begin square root 2 end square root ( begin square root 3 end square root + 9 ) your answer as much as possible.",
+        "a": "sqrt(6)+9*sqrt(2)",
+        "result": "unknown",
+        "ts": "2026-04-21T19:30:18.857038"
+      },
+      {
+        "n": 7,
+        "q": "Multiply. begin square root 2 end square root ( begin square root 3 end square root + 9 ) your answer as much as possible.",
+        "a": "sqrt(6)+9*sqrt(2)",
+        "result": "unknown",
+        "ts": "2026-04-21T19:30:24.166843"
+      },
+      {
+        "n": 8,
+        "q": "Multiply. begin square root 2 end square root ( begin square root 3 end square root + 9 ) your answer as much as possible.",
+        "a": "sqrt(6)+9*sqrt(2)",
+        "result": "unknown",
+        "ts": "2026-04-21T19:30:29.457486"
+      },
+      {
+        "n": 9,
+        "q": "Multiply. begin square root 2 end square root ( begin square root 3 end square root + 9 ) your answer as much as possible.",
+        "a": "sqrt(6)+9*sqrt(2)",
+        "result": "unknown",
+        "ts": "2026-04-21T19:30:34.750833"
+      },
+      {
+        "n": 10,
+        "q": "Multiply. begin square root 2 end square root ( begin square root 3 end square root + 9 ) your answer as much as possible.",
+        "a": "sqrt(6)+9*sqrt(2)",
+        "result": "unknown",
+        "ts": "2026-04-21T19:30:40.041761"
+      },
+      {
+        "n": 11,
+        "q": "Multiply. begin square root 2 end square root ( begin square root 3 end square root + 9 ) your answer as much as possible.",
+        "a": "sqrt(6)+9*sqrt(2)",
+        "result": "unknown",
+        "ts": "2026-04-21T19:30:45.314565"
+      }
+    ]
+  },
+  {
+    "finished_at": "2026-04-21T19:33:13.449025",
+    "results": [
+      {
+        "n": 3,
+        "q": ". ( v begin superscript 6 end superscript ) begin superscript - 4 end superscript Write your answer without using -exponents.",
+        "a": "1/v^24",
+        "result": "unknown",
+        "ts": "2026-04-21T19:33:10.769903"
+      }
+    ]
+  },
+  {
+    "finished_at": "2026-04-21T19:46:58.314726",
+    "results": [
+      {
+        "n": 3,
+        "q": "Simplify. ( x ^(- 6) ) ^(7) Write your answer without using -exponents.",
+        "a": "1/x^42",
+        "result": "correct",
+        "ts": "2026-04-21T19:42:13.694056"
+      },
+      {
+        "n": 4,
+        "q": "Simplify. ( u ^(- 4) ) ^(- 3) Write your answer without using -exponents.",
+        "a": "u^12",
+        "result": "correct",
+        "ts": "2026-04-21T19:42:21.530557"
+      },
+      {
+        "n": 5,
+        "q": "Simplify. ( v ^(6) ) ^(- 6) Write your answer without using -exponents.",
+        "a": "1/v^36",
+        "result": "correct",
+        "ts": "2026-04-21T19:42:30.781049"
+      },
+      {
+        "n": 7,
+        "q": "Simplify. ( (- 2 x ^(3))/(z) ) ^(5) Write your answer without parentheses.",
+        "a": "-32*x^15/z^5",
+        "result": "correct",
+        "ts": "2026-04-21T19:42:48.283784"
+      },
+      {
+        "n": 8,
+        "q": "Simplify. ( (v ^(2))/(3 u ^(4)) ) ^(4) Write your answer without parentheses.",
+        "a": "v^8/81u^16",
+        "result": "unknown",
+        "ts": "2026-04-21T19:42:59.881255"
+      },
+      {
+        "n": 9,
+        "q": "Simplify. ( (v ^(2))/(3 u ^(4)) ) ^(4) Write your answer without parentheses.",
+        "a": "v^8/81u^16",
+        "result": "try_again",
+        "ts": "2026-04-21T19:43:08.356429"
+      },
+      {
+        "n": 10,
+        "q": "Simplify. ( (- 7 z)/(y ^(2)) ) ^(2) Write your answer without parentheses.",
+        "a": "49z^2/y^4",
+        "result": "correct",
+        "ts": "2026-04-21T19:43:17.853580"
+      },
+      {
+        "n": 11,
+        "q": "Simplify. ( (y ^(4))/(- 5 z ^(3)) ) ^(3) Write your answer without parentheses.",
+        "a": "-y^12/(125*z^9)",
+        "result": "correct",
+        "ts": "2026-04-21T19:43:28.880124"
+      },
+      {
+        "n": 12,
+        "q": "Simplify. ( (2 x ^(3))/(z) ) ^(5) Write your answer without parentheses.",
+        "a": "32*x^15/z^5",
+        "result": "correct",
+        "ts": "2026-04-21T19:43:39.321617"
+      },
+      {
+        "n": 14,
+        "q": "Simplify. - 3 sqrt(27) - sqrt(48)",
+        "a": "-11*sqrt(3)",
+        "result": "unknown",
+        "ts": "2026-04-21T19:43:56.283973"
+      },
+      {
+        "n": 15,
+        "q": "Simplify. - 3 sqrt(27) - sqrt(48)",
+        "a": "-11*sqrt(3)",
+        "result": "try_again",
+        "ts": "2026-04-21T19:44:03.157155"
+      },
+      {
+        "n": 16,
+        "q": "Simplify. sqrt(32) + 3 sqrt(50)",
+        "a": "19*sqrt(2)",
+        "result": "correct",
+        "ts": "2026-04-21T19:44:11.202800"
+      },
+      {
+        "n": 17,
+        "q": "Simplify. sqrt(80) - 3 sqrt(45)",
+        "a": "-5*sqrt(5)",
+        "result": "correct",
+        "ts": "2026-04-21T19:44:19.541803"
+      },
+      {
+        "n": 18,
+        "q": "Simplify. 4 sqrt(75) + sqrt(27)",
+        "a": "23*sqrt(3)",
+        "result": "correct",
+        "ts": "2026-04-21T19:44:27.573663"
+      },
+      {
+        "n": 20,
+        "q": "Find the greatest common factor of 8 x ^(3) and 10 x .",
+        "a": "2*x",
+        "result": "correct",
+        "ts": "2026-04-21T19:44:41.563334"
+      },
+      {
+        "n": 21,
+        "q": "Find the greatest common factor of 7 b ^(3) and 4 b ^(2) .",
+        "a": "b^2",
+        "result": "correct",
+        "ts": "2026-04-21T19:44:48.974870"
+      },
+      {
+        "n": 23,
+        "q": "Solve for u , where u is a real number. sqrt(4 u + 7) = sqrt(2 u + 15) If there is more than one solution, separate them with commas.If there is no solution, click on \"No solution\".",
+        "a": "4",
+        "result": "correct",
+        "ts": "2026-04-21T19:45:02.021766"
+      },
+      {
+        "n": 24,
+        "q": "Solve for y , where y is a real number. sqrt(9 y - 8) - sqrt(6 y - 2) = 0 If there is more than one solution, separate them with commas.If there is no solution, click on \"No solution\".",
+        "a": "2",
+        "result": "correct",
+        "ts": "2026-04-21T19:45:08.497674"
+      },
+      {
+        "n": 26,
+        "q": "What are the degree and leading coefficient of the polynomial? 7 x - x ^(6) - 3 x ^(5)",
+        "a": "6, -1",
+        "result": "unknown",
+        "ts": "2026-04-21T19:45:22.326517"
+      },
+      {
+        "n": 27,
+        "q": "What are the degree and leading coefficient of the polynomial? 7 x - x ^(6) - 3 x ^(5)",
+        "a": "6, -1",
+        "result": "unknown",
+        "ts": "2026-04-21T19:45:27.975741"
+      },
+      {
+        "n": 28,
+        "q": "What are the degree and leading coefficient of the polynomial? 7 x - x ^(6) - 3 x ^(5)",
+        "a": "6, -1",
+        "result": "unknown",
+        "ts": "2026-04-21T19:45:33.664177"
+      },
+      {
+        "n": 30,
+        "q": "What are the degree and leading coefficient of the polynomial? 7 x - x ^(6) - 3 x ^(5)",
+        "a": "6, -1",
+        "result": "unknown",
+        "ts": "2026-04-21T19:45:43.169816"
+      },
+      {
+        "n": 31,
+        "q": "What are the degree and leading coefficient of the polynomial? 7 x - x ^(6) - 3 x ^(5)",
+        "a": "6, -1",
+        "result": "unknown",
+        "ts": "2026-04-21T19:45:48.825446"
+      },
+      {
+        "n": 32,
+        "q": "What are the degree and leading coefficient of the polynomial? 7 x - x ^(6) - 3 x ^(5)",
+        "a": "6, -1",
+        "result": "unknown",
+        "ts": "2026-04-21T19:45:54.509426"
+      },
+      {
+        "n": 34,
+        "q": "What are the degree and leading coefficient of the polynomial? 7 x - x ^(6) - 3 x ^(5)",
+        "a": "6, -1",
+        "result": "unknown",
+        "ts": "2026-04-21T19:46:04.024356"
+      },
+      {
+        "n": 35,
+        "q": "What are the degree and leading coefficient of the polynomial? 7 x - x ^(6) - 3 x ^(5)",
+        "a": "6, -1",
+        "result": "unknown",
+        "ts": "2026-04-21T19:46:09.652070"
+      },
+      {
+        "n": 36,
+        "q": "What are the degree and leading coefficient of the polynomial? 7 x - x ^(6) - 3 x ^(5)",
+        "a": "6, -1",
+        "result": "unknown",
+        "ts": "2026-04-21T19:46:15.302780"
+      },
+      {
+        "n": 38,
+        "q": "What are the degree and leading coefficient of the polynomial? 7 x - x ^(6) - 3 x ^(5)",
+        "a": "6, -1",
+        "result": "unknown",
+        "ts": "2026-04-21T19:46:24.573012"
+      },
+      {
+        "n": 39,
+        "q": "What are the degree and leading coefficient of the polynomial? 7 x - x ^(6) - 3 x ^(5)",
+        "a": "6, -1",
+        "result": "unknown",
+        "ts": "2026-04-21T19:46:30.229084"
+      },
+      {
+        "n": 40,
+        "q": "What are the degree and leading coefficient of the polynomial? 7 x - x ^(6) - 3 x ^(5)",
+        "a": "6, -1",
+        "result": "unknown",
+        "ts": "2026-04-21T19:46:35.890073"
+      },
+      {
+        "n": 42,
+        "q": "What are the degree and leading coefficient of the polynomial? 7 x - x ^(6) - 3 x ^(5)",
+        "a": "6, -1",
+        "result": "unknown",
+        "ts": "2026-04-21T19:46:45.140040"
+      },
+      {
+        "n": 43,
+        "q": "What are the degree and leading coefficient of the polynomial? 7 x - x ^(6) - 3 x ^(5)",
+        "a": "6, -1",
+        "result": "unknown",
+        "ts": "2026-04-21T19:46:50.844854"
+      },
+      {
+        "n": 44,
+        "q": "What are the degree and leading coefficient of the polynomial? 7 x - x ^(6) - 3 x ^(5)",
+        "a": "6, -1",
+        "result": "unknown",
+        "ts": "2026-04-21T19:46:56.533338"
+      }
+    ]
+  },
+  {
+    "finished_at": "2026-04-21T19:48:42.583059",
+    "results": [
+      {
+        "n": 3,
+        "q": "What are the degree and leading coefficient of the polynomial? 7 x - x ^(6) - 3 x ^(5)",
+        "a": "6, -1",
+        "result": "unknown",
+        "ts": "2026-04-21T19:47:23.983126"
+      },
+      {
+        "n": 4,
+        "q": "What are the degree and leading coefficient of the polynomial? 7 x - x ^(6) - 3 x ^(5)",
+        "a": "6, -1",
+        "result": "unknown",
+        "ts": "2026-04-21T19:47:29.648354"
+      },
+      {
+        "n": 5,
+        "q": "What are the degree and leading coefficient of the polynomial? 7 x - x ^(6) - 3 x ^(5)",
+        "a": "6, -1",
+        "result": "unknown",
+        "ts": "2026-04-21T19:47:35.330314"
+      },
+      {
+        "n": 7,
+        "q": "What are the degree and leading coefficient of the polynomial? 7 x - x ^(6) - 3 x ^(5)",
+        "a": "6, -1",
+        "result": "unknown",
+        "ts": "2026-04-21T19:47:44.902487"
+      },
+      {
+        "n": 8,
+        "q": "What are the degree and leading coefficient of the polynomial? 7 x - x ^(6) - 3 x ^(5)",
+        "a": "6, -1",
+        "result": "unknown",
+        "ts": "2026-04-21T19:47:50.597625"
+      },
+      {
+        "n": 9,
+        "q": "What are the degree and leading coefficient of the polynomial? 7 x - x ^(6) - 3 x ^(5)",
+        "a": "6, -1",
+        "result": "unknown",
+        "ts": "2026-04-21T19:47:56.260612"
+      },
+      {
+        "n": 11,
+        "q": "What are the degree and leading coefficient of the polynomial? 7 x - x ^(6) - 3 x ^(5)",
+        "a": "6, -1",
+        "result": "unknown",
+        "ts": "2026-04-21T19:48:05.579998"
+      },
+      {
+        "n": 12,
+        "q": "What are the degree and leading coefficient of the polynomial? 7 x - x ^(6) - 3 x ^(5)",
+        "a": "6, -1",
+        "result": "unknown",
+        "ts": "2026-04-21T19:48:11.235684"
+      },
+      {
+        "n": 13,
+        "q": "What are the degree and leading coefficient of the polynomial? 7 x - x ^(6) - 3 x ^(5)",
+        "a": "6, -1",
+        "result": "unknown",
+        "ts": "2026-04-21T19:48:16.903770"
+      },
+      {
+        "n": 15,
+        "q": "What are the degree and leading coefficient of the polynomial? 7 x - x ^(6) - 3 x ^(5)",
+        "a": "6, -1",
+        "result": "unknown",
+        "ts": "2026-04-21T19:48:26.249686"
+      },
+      {
+        "n": 16,
+        "q": "What are the degree and leading coefficient of the polynomial? 7 x - x ^(6) - 3 x ^(5)",
+        "a": "6, -1",
+        "result": "unknown",
+        "ts": "2026-04-21T19:48:31.908185"
+      },
+      {
+        "n": 17,
+        "q": "What are the degree and leading coefficient of the polynomial? 7 x - x ^(6) - 3 x ^(5)",
+        "a": "6, -1",
+        "result": "unknown",
+        "ts": "2026-04-21T19:48:37.560516"
+      }
+    ]
+  },
+  {
+    "finished_at": "2026-04-21T19:49:58.942250",
+    "results": [
+      {
+        "n": 3,
+        "q": "What are the degree and leading coefficient of the polynomial? 7 x - x ^(6) - 3 x ^(5)",
+        "a": "6, -1",
+        "result": "unknown",
+        "ts": "2026-04-21T19:49:09.143940"
+      },
+      {
+        "n": 4,
+        "q": "What are the degree and leading coefficient of the polynomial? 7 x - x ^(6) - 3 x ^(5)",
+        "a": "6, -1",
+        "result": "unknown",
+        "ts": "2026-04-21T19:49:14.804129"
+      },
+      {
+        "n": 5,
+        "q": "What are the degree and leading coefficient of the polynomial? 7 x - x ^(6) - 3 x ^(5)",
+        "a": "6, -1",
+        "result": "unknown",
+        "ts": "2026-04-21T19:49:20.473550"
+      },
+      {
+        "n": 7,
+        "q": "What are the degree and leading coefficient of the polynomial? 7 x - x ^(6) - 3 x ^(5)",
+        "a": "6, -1",
+        "result": "unknown",
+        "ts": "2026-04-21T19:49:29.780574"
+      },
+      {
+        "n": 8,
+        "q": "What are the degree and leading coefficient of the polynomial? 7 x - x ^(6) - 3 x ^(5)",
+        "a": "6, -1",
+        "result": "unknown",
+        "ts": "2026-04-21T19:49:35.465488"
+      },
+      {
+        "n": 9,
+        "q": "What are the degree and leading coefficient of the polynomial? 7 x - x ^(6) - 3 x ^(5)",
+        "a": "6, -1",
+        "result": "unknown",
+        "ts": "2026-04-21T19:49:41.130825"
+      },
+      {
+        "n": 11,
+        "q": "What are the degree and leading coefficient of the polynomial? 7 x - x ^(6) - 3 x ^(5)",
+        "a": "6, -1",
+        "result": "unknown",
+        "ts": "2026-04-21T19:49:50.654742"
+      },
+      {
+        "n": 12,
+        "q": "What are the degree and leading coefficient of the polynomial? 7 x - x ^(6) - 3 x ^(5)",
+        "a": "6, -1",
+        "result": "unknown",
+        "ts": "2026-04-21T19:49:56.328597"
+      }
+    ]
+  },
+  {
+    "finished_at": "2026-04-21T20:04:07.098851",
+    "results": [
+      {
+        "n": 3,
+        "q": "for v . - (1)/(v - 6) = - 7 your answer as much as possible.",
+        "a": "43/7",
+        "result": "unknown",
+        "ts": "2026-04-21T19:58:58.781475"
+      },
+      {
+        "n": 4,
+        "q": "for v . - (1)/(v - 6) = - 7 your answer as much as possible.",
+        "a": "43/7",
+        "result": "unknown",
+        "ts": "2026-04-21T19:59:04.408632"
+      },
+      {
+        "n": 5,
+        "q": "for v . - (1)/(v - 6) = - 7 your answer as much as possible.",
+        "a": "43/7",
+        "result": "unknown",
+        "ts": "2026-04-21T19:59:10.070270"
+      },
+      {
+        "n": 8,
+        "q": "Solve for w . 2 = - (7)/(w + 8) Simplify your answer as much as possible.",
+        "a": "-23/2",
+        "result": "correct",
+        "ts": "2026-04-21T19:59:26.857654"
+      },
+      {
+        "n": 9,
+        "q": "Solve for u . (6)/(u + 7) = 8 Simplify your answer as much as possible.",
+        "a": "-25/4",
+        "result": "correct",
+        "ts": "2026-04-21T19:59:35.077926"
+      },
+      {
+        "n": 10,
+        "q": "Solve for w . - 6 = - (8)/(w - 1) Simplify your answer as much as possible.",
+        "a": "7/3",
+        "result": "correct",
+        "ts": "2026-04-21T19:59:42.726155"
+      },
+      {
+        "n": 12,
+        "q": "Rationalize the denominator and simplify. sqrt((6)/(7))",
+        "a": "sqrt(42)/7",
+        "result": "correct",
+        "ts": "2026-04-21T19:59:57.631894"
+      },
+      {
+        "n": 13,
+        "q": "Rationalize the denominator and simplify. sqrt((2)/(14))",
+        "a": "sqrt(7)/7",
+        "result": "correct",
+        "ts": "2026-04-21T20:00:05.758980"
+      },
+      {
+        "n": 14,
+        "q": "Rationalize the denominator and simplify. sqrt((7)/(2))",
+        "a": "sqrt(14)/2",
+        "result": "correct",
+        "ts": "2026-04-21T20:00:14.342567"
+      },
+      {
+        "n": 16,
+        "q": "Solve for u , where u is a real number. begin radical index 4 end radical index begin radical u end radical = 2 If there is more than one solution, separate them with commas. If there is no solution, ",
+        "a": "16",
+        "result": "correct",
+        "ts": "2026-04-21T20:00:28.570022"
+      },
+      {
+        "n": 17,
+        "q": "Solve for v , where v is a real number. begin radical index 3 end radical index begin radical v end radical = 3 If there is more than one solution, separate them with commas. If there is no solution, ",
+        "a": "27",
+        "result": "correct",
+        "ts": "2026-04-21T20:00:35.454126"
+      },
+      {
+        "n": 19,
+        "q": "Rewrite the expression without using a -exponent. 3 z ^(- 2) Simplify your answer as much as possible.",
+        "a": "3/z^2",
+        "result": "correct",
+        "ts": "2026-04-21T20:00:51.168830"
+      },
+      {
+        "n": 20,
+        "q": "Rewrite the expression without using a -exponent. (1)/(2 m ^(- 4)) Simplify your answer as much as possible.",
+        "a": "m^4/2",
+        "result": "correct",
+        "ts": "2026-04-21T20:00:59.389553"
+      },
+      {
+        "n": 21,
+        "q": "Rewrite the expression without using a -exponent. (1)/(- 5 m ^(- 5)) Simplify your answer as much as possible.",
+        "a": "-m^5/5",
+        "result": "correct",
+        "ts": "2026-04-21T20:01:07.827686"
+      },
+      {
+        "n": 23,
+        "q": "Find the greatest common factor of these two expressions. 12 x ^(7) v ^(5) y ^(6) and 18 v ^(3) y ^(2)",
+        "a": "6*v^3*y^2",
+        "result": "correct",
+        "ts": "2026-04-21T20:01:23.940610"
+      },
+      {
+        "n": 24,
+        "q": "Find the greatest common factor of these two expressions. 27 u ^(3) x ^(5) and 18 u ^(8) x ^(5) y ^(4)",
+        "a": "9*u^3*x^5",
+        "result": "correct",
+        "ts": "2026-04-21T20:01:33.245683"
+      },
+      {
+        "n": 26,
+        "q": "Factor completely. - 5 u ^(2) + 17 u - 6",
+        "a": "-(5*u-2)*(u-3)",
+        "result": "correct",
+        "ts": "2026-04-21T20:01:50.674081"
+      },
+      {
+        "n": 27,
+        "q": "Factor completely. - y ^(2) - 11 y - 18",
+        "a": "-(y+2)*(y+9)",
+        "result": "correct",
+        "ts": "2026-04-21T20:02:00.448262"
+      },
+      {
+        "n": 28,
+        "q": "Factor completely. - 5 w ^(2) + 3 w + 14",
+        "a": "(2-w)*(5*w+7)",
+        "result": "correct",
+        "ts": "2026-04-21T20:02:10.932571"
+      },
+      {
+        "n": 30,
+        "q": "Solve the inequality for x . 2 - 9 x >= 14 - 6 x Simplify your answer as much as possible.",
+        "a": "x<=-4",
+        "result": "unknown",
+        "ts": "2026-04-21T20:02:26.890725"
+      },
+      {
+        "n": 31,
+        "q": "Solve the inequality for x . 2 - 9 x >= 14 - 6 x Simplify your answer as much as possible.",
+        "a": "x<=-4",
+        "result": "try_again",
+        "ts": "2026-04-21T20:02:33.078527"
+      },
+      {
+        "n": 32,
+        "q": "Solve the inequality for v . 3 v + 7 less 49 - 3 v Simplify your answer as much as possible.",
+        "a": "v<7",
+        "result": "correct",
+        "ts": "2026-04-21T20:02:40.028249"
+      },
+      {
+        "n": 33,
+        "q": "Solve the inequality for u . - 3 u - 14 <= 3 u + 16 Simplify your answer as much as possible.",
+        "a": "u>=-5",
+        "result": "unknown",
+        "ts": "2026-04-21T20:02:49.353134"
+      },
+      {
+        "n": 34,
+        "q": "Solve the inequality for u . - 3 u - 14 <= 3 u + 16 Simplify your answer as much as possible.",
+        "a": "u>=-5",
+        "result": "try_again",
+        "ts": "2026-04-21T20:02:55.521485"
+      },
+      {
+        "n": 35,
+        "q": "Solve the inequality for v . 5 v - 6 >= 9 v - 30 Simplify your answer as much as possible.",
+        "a": "v<=6",
+        "result": "unknown",
+        "ts": "2026-04-21T20:03:04.249441"
+      },
+      {
+        "n": 36,
+        "q": "Solve the inequality for v . 5 v - 6 >= 9 v - 30 Simplify your answer as much as possible.",
+        "a": "v<=6",
+        "result": "try_again",
+        "ts": "2026-04-21T20:03:10.109352"
+      },
+      {
+        "n": 37,
+        "q": "Solve the inequality for w . 30 - 5 w less 6 - 9 w Simplify your answer as much as possible.",
+        "a": "w<-3/2",
+        "result": "unknown",
+        "ts": "2026-04-21T20:03:19.892012"
+      },
+      {
+        "n": 38,
+        "q": "Solve the inequality for w . 30 - 5 w less 6 - 9 w Simplify your answer as much as possible.",
+        "a": "w<-3/2",
+        "result": "unknown",
+        "ts": "2026-04-21T20:03:46.540919"
+      },
+      {
+        "n": 39,
+        "q": "Solve the inequality for x . 62 - 5 x <= 2 x + 6 Simplify your answer as much as possible.",
+        "a": "x>=8",
+        "result": "unknown",
+        "ts": "2026-04-21T20:03:54.881903"
+      },
+      {
+        "n": 40,
+        "q": "Solve the inequality for x . 62 - 5 x <= 2 x + 6 Simplify your answer as much as possible.",
+        "a": "x>=8",
+        "result": "try_again",
+        "ts": "2026-04-21T20:04:00.703206"
+      }
+    ]
+  },
+  {
+    "finished_at": "2026-04-21T20:08:24.137189",
+    "results": [
+      {
+        "n": 3,
+        "q": "Evaluate.",
+        "a": "Please provide the expression to evaluate.",
+        "result": "unknown",
+        "ts": "2026-04-21T20:06:28.607365"
+      },
+      {
+        "n": 4,
+        "q": "Try AgainYour answer is incorrect. 81 ^((1)/(4)) : Your answer is incorrect. 27 ^((1)/(3)) : Your answer is incorrect. Evaluate.",
+        "a": "3,3",
+        "result": "correct",
+        "ts": "2026-04-21T20:06:35.174880"
+      },
+      {
+        "n": 5,
+        "q": "Evaluate.",
+        "a": "Please provide the expression to evaluate.",
+        "result": "unknown",
+        "ts": "2026-04-21T20:07:07.407669"
+      },
+      {
+        "n": 6,
+        "q": "Try AgainYour answer is incorrect. 625 ^((1)/(4)) : Your answer is incorrect. 64 ^((1)/(3)) : Your answer is incorrect. Evaluate.",
+        "a": "5,4",
+        "result": "correct",
+        "ts": "2026-04-21T20:07:14.392638"
+      },
+      {
+        "n": 7,
+        "q": "Evaluate.",
+        "a": "Please provide the expression to evaluate.",
+        "result": "unknown",
+        "ts": "2026-04-21T20:07:46.588119"
+      },
+      {
+        "n": 8,
+        "q": "Try AgainYour answer is incorrect. 8 ^((1)/(3)) : Your answer is incorrect. 256 ^((1)/(4)) : Your answer is incorrect. Evaluate.",
+        "a": "2, 4",
+        "result": "correct",
+        "ts": "2026-04-21T20:07:53.140603"
+      }
+    ]
+  },
+  {
+    "finished_at": "2026-04-21T20:11:54.568262",
+    "results": [
+      {
+        "n": 3,
+        "q": "Evaluate.",
+        "a": "Please provide the expression to evaluate.",
+        "result": "try_again",
+        "ts": "2026-04-21T20:11:03.266603"
+      },
+      {
+        "n": 4,
+        "q": "Evaluate.",
+        "a": "Please provide the expression to evaluate.",
+        "result": "unknown",
+        "ts": "2026-04-21T20:11:36.573791"
+      },
+      {
+        "n": 5,
+        "q": "Try AgainYour answer is incorrect. 81 ^((1)/(4)) : Your answer is incorrect. 343 ^((1)/(3)) : Your answer is incorrect. Evaluate.",
+        "a": "3,7",
+        "result": "correct",
+        "ts": "2026-04-21T20:11:43.059280"
+      }
+    ]
+  },
+  {
+    "finished_at": "2026-04-21T20:25:11.779957",
+    "results": [
+      {
+        "n": 3,
+        "q": "Solve for v , where v is a real number. - 3 = sqrt(4 v - 20) - 1 If there is more than one solution, separate them with commas.If there is no solution, click on \"No solution\".",
+        "a": "No solution",
+        "result": "unknown",
+        "ts": "2026-04-21T20:23:35.826477"
+      },
+      {
+        "n": 4,
+        "q": "Solve for v , where v is a real number. - 3 = sqrt(4 v - 20) - 1 If there is more than one solution, separate them with commas.If there is no solution, click on \"No solution\".",
+        "a": "No solution",
+        "result": "try_again",
+        "ts": "2026-04-21T20:23:53.618973"
+      },
+      {
+        "n": 5,
+        "q": "Solve for w , where w is a real number. sqrt(12 - 2 w) = 2 If there is more than one solution, separate them with commas.If there is no solution, click on \"No solution\".",
+        "a": "4",
+        "result": "correct",
+        "ts": "2026-04-21T20:24:00.031193"
+      },
+      {
+        "n": 6,
+        "q": "Solve for v , where v is a real number. 4 = sqrt(3 v - 8) If there is more than one solution, separate them with commas.If there is no solution, click on \"No solution\".",
+        "a": "8",
+        "result": "correct",
+        "ts": "2026-04-21T20:24:06.438541"
+      },
+      {
+        "n": 8,
+        "q": "Multiply. 6 sqrt(2) ( sqrt(3) - sqrt(2) ) Simplify your answer as much as possible.",
+        "a": "6*sqrt(6)-12",
+        "result": "correct",
+        "ts": "2026-04-21T20:24:21.915009"
+      },
+      {
+        "n": 9,
+        "q": "Multiply. sqrt(5) ( sqrt(6) + 3 sqrt(15) ) Simplify your answer as much as possible.",
+        "a": "sqrt(30)+15*sqrt(3)",
+        "result": "correct",
+        "ts": "2026-04-21T20:24:32.602730"
+      },
+      {
+        "n": 10,
+        "q": "Multiply. 8 sqrt(6) ( sqrt(7) + sqrt(6) ) Simplify your answer as much as possible.",
+        "a": "8*sqrt(42)+48",
+        "result": "correct",
+        "ts": "2026-04-21T20:24:41.485550"
+      },
+      {
+        "n": 12,
+        "q": "Simplify. 32 ^((3)/(5))",
+        "a": "8",
+        "result": "correct",
+        "ts": "2026-04-21T20:24:54.573229"
+      },
+      {
+        "n": 13,
+        "q": "Simplify. 8 ^((4)/(3))",
+        "a": "16",
+        "result": "correct",
+        "ts": "2026-04-21T20:25:01.605386"
+      }
+    ]
+  },
+  {
+    "finished_at": "2026-04-21T20:35:46.659653",
+    "results": [
+      {
+        "n": 3,
+        "q": "Fill in the blank with a number to make the expression a perfect square.",
+        "a": "0",
+        "result": "unknown",
+        "ts": "2026-04-21T20:33:19.868666"
+      },
+      {
+        "n": 4,
+        "q": "Try Again Your answer is incorrect. Fill in the blank with a number to make the expression a perfect square. w ^(2) - 8 w + 0",
+        "a": "16",
+        "result": "correct",
+        "ts": "2026-04-21T20:33:28.313072"
+      },
+      {
+        "n": 5,
+        "q": "Fill in the blank with a number to make the expression a perfect square.",
+        "a": "0",
+        "result": "unknown",
+        "ts": "2026-04-21T20:33:35.308182"
+      },
+      {
+        "n": 6,
+        "q": "Try Again Your answer is incorrect. Fill in the blank with a number to make the expression a perfect square. v ^(2) + 4 v + 0",
+        "a": "4",
+        "result": "correct",
+        "ts": "2026-04-21T20:33:41.369292"
+      },
+      {
+        "n": 7,
+        "q": "Fill in the blank with a number to make the expression a perfect square.",
+        "a": "0",
+        "result": "unknown",
+        "ts": "2026-04-21T20:33:48.342882"
+      },
+      {
+        "n": 8,
+        "q": "Try Again Your answer is incorrect. Fill in the blank with a number to make the expression a perfect square. v ^(2) + 16 v + 0",
+        "a": "64",
+        "result": "correct",
+        "ts": "2026-04-21T20:33:56.729155"
+      },
+      {
+        "n": 9,
+        "q": "Fill in the blank with a number to make the expression a perfect square.",
+        "a": "0",
+        "result": "unknown",
+        "ts": "2026-04-21T20:34:03.711488"
+      },
+      {
+        "n": 10,
+        "q": "Try Again Your answer is incorrect. Fill in the blank with a number to make the expression a perfect square. v ^(2) - 2 v + 0",
+        "a": "1",
+        "result": "correct",
+        "ts": "2026-04-21T20:34:09.643223"
+      },
+      {
+        "n": 11,
+        "q": "Fill in the blank with a number to make the expression a perfect square.",
+        "a": "0",
+        "result": "unknown",
+        "ts": "2026-04-21T20:34:16.610948"
+      },
+      {
+        "n": 12,
+        "q": "Try Again Your answer is incorrect. Fill in the blank with a number to make the expression a perfect square. x ^(2) - 14 x + 0",
+        "a": "49",
+        "result": "correct",
+        "ts": "2026-04-21T20:34:23.132526"
+      },
+      {
+        "n": 13,
+        "q": "Fill in the blank with a number to make the expression a perfect square.",
+        "a": "0",
+        "result": "unknown",
+        "ts": "2026-04-21T20:34:30.089345"
+      },
+      {
+        "n": 14,
+        "q": "Try Again Your answer is incorrect. Fill in the blank with a number to make the expression a perfect square. w ^(2) + 6 w + 0",
+        "a": "9",
+        "result": "correct",
+        "ts": "2026-04-21T20:34:38.143393"
+      },
+      {
+        "n": 15,
+        "q": "Fill in the blank with a number to make the expression a perfect square.",
+        "a": "0",
+        "result": "unknown",
+        "ts": "2026-04-21T20:34:45.102718"
+      },
+      {
+        "n": 16,
+        "q": "Try Again Your answer is incorrect. Fill in the blank with a number to make the expression a perfect square. u ^(2) + 16 u + 0",
+        "a": "64",
+        "result": "correct",
+        "ts": "2026-04-21T20:34:51.728614"
+      },
+      {
+        "n": 17,
+        "q": "Fill in the blank with a number to make the expression a perfect square.",
+        "a": "0",
+        "result": "unknown",
+        "ts": "2026-04-21T20:34:58.711813"
+      },
+      {
+        "n": 18,
+        "q": "Try Again Your answer is incorrect. Fill in the blank with a number to make the expression a perfect square. v ^(2) - 18 v + 0",
+        "a": "81",
+        "result": "correct",
+        "ts": "2026-04-21T20:35:06.689573"
+      },
+      {
+        "n": 19,
+        "q": "Fill in the blank with a number to make the expression a perfect square.",
+        "a": "0",
+        "result": "unknown",
+        "ts": "2026-04-21T20:35:13.684396"
+      },
+      {
+        "n": 20,
+        "q": "Try Again Your answer is incorrect. Fill in the blank with a number to make the expression a perfect square. v ^(2) - 10 v + 0",
+        "a": "25",
+        "result": "correct",
+        "ts": "2026-04-21T20:35:19.984246"
+      },
+      {
+        "n": 21,
+        "q": "Fill in the blank with a number to make the expression a perfect square.",
+        "a": "0",
+        "result": "unknown",
+        "ts": "2026-04-21T20:35:26.981062"
+      },
+      {
+        "n": 22,
+        "q": "Try Again Your answer is incorrect. Fill in the blank with a number to make the expression a perfect square. w ^(2) + 16 w + 0",
+        "a": "64",
+        "result": "correct",
+        "ts": "2026-04-21T20:35:33.464986"
+      },
+      {
+        "n": 23,
+        "q": "Fill in the blank with a number to make the expression a perfect square.",
+        "a": "0",
+        "result": "unknown",
+        "ts": "2026-04-21T20:35:40.432322"
+      }
+    ]
+  },
+  {
+    "finished_at": "2026-04-21T20:38:55.464508",
+    "results": [
+      {
+        "n": 3,
+        "q": "Fill in the blank with a number to make the expression a perfect square.",
+        "a": "0",
+        "result": "unknown",
+        "ts": "2026-04-21T20:37:44.713272"
+      },
+      {
+        "n": 4,
+        "q": "Try Again Your answer is incorrect. Fill in the blank with a number to make the expression a perfect square. v ^(2) - 4 v + 0",
+        "a": "4",
+        "result": "correct",
+        "ts": "2026-04-21T20:37:52.779305"
+      },
+      {
+        "n": 5,
+        "q": "Fill in the blank with a number to make the expression a perfect square.",
+        "a": "0",
+        "result": "unknown",
+        "ts": "2026-04-21T20:38:00.693724"
+      },
+      {
+        "n": 6,
+        "q": "Try Again Your answer is incorrect. Fill in the blank with a number to make the expression a perfect square. x ^(2) + 8 x + 0",
+        "a": "16",
+        "result": "correct",
+        "ts": "2026-04-21T20:38:07.169229"
+      },
+      {
+        "n": 7,
+        "q": "Fill in the blank with a number to make the expression a perfect square.",
+        "a": "0",
+        "result": "unknown",
+        "ts": "2026-04-21T20:38:15.131252"
+      },
+      {
+        "n": 8,
+        "q": "Try Again Your answer is incorrect. Fill in the blank with a number to make the expression a perfect square. x ^(2) - 2 x + 0",
+        "a": "1",
+        "result": "correct",
+        "ts": "2026-04-21T20:38:23.226126"
+      },
+      {
+        "n": 9,
+        "q": "Fill in the blank with a number to make the expression a perfect square.",
+        "a": "0",
+        "result": "unknown",
+        "ts": "2026-04-21T20:38:31.154031"
+      },
+      {
+        "n": 10,
+        "q": "Try Again Your answer is incorrect. Fill in the blank with a number to make the expression a perfect square. w ^(2) - 6 w + 0",
+        "a": "9",
+        "result": "correct",
+        "ts": "2026-04-21T20:38:37.260184"
+      },
+      {
+        "n": 11,
+        "q": "Fill in the blank with a number to make the expression a perfect square.",
+        "a": "0",
+        "result": "unknown",
+        "ts": "2026-04-21T20:38:45.299525"
+      },
+      {
+        "n": 12,
+        "q": "Try Again Your answer is incorrect. Fill in the blank with a number to make the expression a perfect square. y ^(2) + 8 y + 0",
+        "a": "16",
+        "result": "correct",
+        "ts": "2026-04-21T20:38:51.679000"
+      }
+    ]
+  },
+  {
+    "finished_at": "2026-04-21T20:39:53.725286",
+    "results": [
+      {
+        "n": 3,
+        "q": "__",
+        "a": "Please provide the actual equation or problem statement.",
+        "result": "unknown",
+        "ts": "2026-04-21T20:39:47.179325"
+      }
+    ]
+  },
+  {
+    "finished_at": "2026-04-21T20:45:57.784487",
+    "results": [
+      {
+        "n": 3,
+        "q": "x ^(2) + 6 x + __",
+        "a": "9",
+        "result": "correct",
+        "ts": "2026-04-21T20:43:47.762365"
+      },
+      {
+        "n": 4,
+        "q": "u ^(2) - 18 u + __",
+        "a": "81",
+        "result": "correct",
+        "ts": "2026-04-21T20:43:54.457708"
+      },
+      {
+        "n": 6,
+        "q": "Solve for v . |v| = 4 If there is more than one solution, separate them with commas. If there is no solution, click on \"No solution\". Answer Editor",
+        "a": "-4,4",
+        "result": "correct",
+        "ts": "2026-04-21T20:44:08.549413"
+      },
+      {
+        "n": 7,
+        "q": "Solve for v . |v| = 0 If there is more than one solution, separate them with commas. If there is no solution, click on \"No solution\". Answer Editor",
+        "a": "0",
+        "result": "correct",
+        "ts": "2026-04-21T20:44:15.033377"
+      },
+      {
+        "n": 9,
+        "q": "Solve for I . R = (E)/(I)",
+        "a": "E/R",
+        "result": "correct",
+        "ts": "2026-04-21T20:44:29.389677"
+      },
+      {
+        "n": 10,
+        "q": "Solve for a . (7)/(a) = (m)/(F)",
+        "a": "7*F/m",
+        "result": "correct",
+        "ts": "2026-04-21T20:44:37.458240"
+      },
+      {
+        "n": 12,
+        "q": "Answer Editor",
+        "a": "42",
+        "result": "unknown",
+        "ts": "2026-04-21T20:44:52.485110"
+      },
+      {
+        "n": 13,
+        "q": "Answer Editor",
+        "a": "0",
+        "result": "try_again",
+        "ts": "2026-04-21T20:44:58.750933"
+      },
+      {
+        "n": 14,
+        "q": "Answer Editor",
+        "a": "0",
+        "result": "unknown",
+        "ts": "2026-04-21T20:45:06.849912"
+      },
+      {
+        "n": 16,
+        "q": "Answer Editor",
+        "a": "0",
+        "result": "try_again",
+        "ts": "2026-04-21T20:45:15.967156"
+      },
+      {
+        "n": 17,
+        "q": "Answer Editor",
+        "a": "0",
+        "result": "unknown",
+        "ts": "2026-04-21T20:45:24.071598"
+      },
+      {
+        "n": 18,
+        "q": "Answer Editor Correct Answer (- 2)/(7 x + 4) = (- 16)/(56 x + 32)",
+        "a": "all real numbers except -4/7",
+        "result": "unknown",
+        "ts": "2026-04-21T20:45:32.762576"
+      },
+      {
+        "n": 19,
+        "q": "Answer Editor",
+        "a": "42",
+        "result": "unknown",
+        "ts": "2026-04-21T20:45:40.772251"
+      },
+      {
+        "n": 20,
+        "q": "Answer Editor",
+        "a": "42",
+        "result": "try_again",
+        "ts": "2026-04-21T20:45:47.187237"
+      },
+      {
+        "n": 21,
+        "q": "Answer Editor",
+        "a": "0",
+        "result": "unknown",
+        "ts": "2026-04-21T20:45:55.209193"
+      }
+    ]
+  },
+  {
+    "finished_at": "2026-04-21T20:49:21.688949",
+    "results": [
+      {
+        "n": 3,
+        "q": "(4 v ^(2) - 16)/(v ^(2) + 5 v + 6)",
+        "a": "4*(v-2)/(v+3)",
+        "result": "unknown",
+        "ts": "2026-04-21T20:47:38.130941"
+      },
+      {
+        "n": 5,
+        "q": "Simplify. (6 u ^(2) + 24 u - 72)/(u ^(2) - 10 u + 16)",
+        "a": "6*(u+6)/(u-8)",
+        "result": "correct",
+        "ts": "2026-04-21T20:47:50.653153"
+      },
+      {
+        "n": 6,
+        "q": "Simplify. (4 w ^(2) - 12 w + 8)/(w ^(2) - 2 w + 1)",
+        "a": "4*(w-2)/(w-1)",
+        "result": "correct",
+        "ts": "2026-04-21T20:48:00.415157"
+      },
+      {
+        "n": 7,
+        "q": "Simplify. (u ^(2) + 4 u - 5)/(4 u ^(2) - 100)",
+        "a": "(u+5)/(4*(u-5)*(u+5))",
+        "result": "unknown",
+        "ts": "2026-04-21T20:48:14.337717"
+      },
+      {
+        "n": 8,
+        "q": "Simplify. (u ^(2) + 4 u - 5)/(4 u ^(2) - 100)",
+        "a": "(u+5)/(4*(u+5)*(u-5))",
+        "result": "try_again",
+        "ts": "2026-04-21T20:48:26.375451"
+      },
+      {
+        "n": 9,
+        "q": "Simplify. (x ^(2) + 4 x - 12)/(3 x ^(2) - 12)",
+        "a": "(x+6)/(3*(x+2))",
+        "result": "correct",
+        "ts": "2026-04-21T20:48:36.890379"
+      },
+      {
+        "n": 10,
+        "q": "Simplify. (3 y ^(2) - 18 y + 24)/(y ^(2) - 4 y + 4)",
+        "a": "3*(y-4)/(y-2)",
+        "result": "correct",
+        "ts": "2026-04-21T20:48:46.830199"
+      },
+      {
+        "n": 12,
+        "q": "Write the following as a radical expression. a ^((1)/(4))",
+        "a": "root(4,a)",
+        "result": "unknown",
+        "ts": "2026-04-21T20:49:10.634130"
+      }
+    ]
+  },
+  {
+    "finished_at": "2026-04-21T20:52:24.707936",
+    "results": [
+      {
+        "n": 3,
+        "q": "Write the following as a radical expression. a ^((1)/(4))",
+        "a": "root(4,a)",
+        "result": "correct",
+        "ts": "2026-04-21T20:51:12.694779"
+      },
+      {
+        "n": 4,
+        "q": "Write the following as an exponential expression. begin radical index 6 end radical index begin radical 7 ^(5) end radical",
+        "a": "7^(5/6)",
+        "result": "correct",
+        "ts": "2026-04-21T20:51:21.093927"
+      },
+      {
+        "n": 5,
+        "q": "Write the following as a radical expression. 15 ^((3)/(5))",
+        "a": "root(5,15^3)",
+        "result": "correct",
+        "ts": "2026-04-21T20:51:30.047686"
+      },
+      {
+        "n": 7,
+        "q": "Solve for v . |v| - 17 = - 7 If there is more than one solution, separate them with commas. If there is no solution, click on \"No solution\".",
+        "a": "-10,10",
+        "result": "correct",
+        "ts": "2026-04-21T20:51:44.705998"
+      },
+      {
+        "n": 8,
+        "q": "Solve for u . 6 |u| = - 42 If there is more than one solution, separate them with commas. If there is no solution, click on \"No solution\".",
+        "a": "No solution",
+        "result": "unknown",
+        "ts": "2026-04-21T20:52:04.294588"
+      },
+      {
+        "n": 9,
+        "q": "Solve for u . 6 |u| = - 42 If there is more than one solution, separate them with commas. If there is no solution, click on \"No solution\".",
+        "a": "No solution",
+        "result": "try_again",
+        "ts": "2026-04-21T20:52:21.570875"
+      }
+    ]
+  },
+  {
+    "finished_at": "2026-04-21T20:55:54.194868",
+    "results": [
+      {
+        "n": 3,
+        "q": "Solve for y . 2 |y| = 14 If there is more than one solution, separate them with commas. If there is no solution, click on \"No solution\".",
+        "a": "-7,7",
+        "result": "correct",
+        "ts": "2026-04-21T20:53:49.830375"
+      },
+      {
+        "n": 4,
+        "q": "Solve for v . |v| + 12 = 12 If there is more than one solution, separate them with commas. If there is no solution, click on \"No solution\".",
+        "a": "0",
+        "result": "correct",
+        "ts": "2026-04-21T20:53:56.272576"
+      },
+      {
+        "n": 5,
+        "q": "Solve for y . - 5 |y| = - 40 If there is more than one solution, separate them with commas. If there is no solution, click on \"No solution\".",
+        "a": "-8,8",
+        "result": "correct",
+        "ts": "2026-04-21T20:54:03.990101"
+      },
+      {
+        "n": 7,
+        "q": "Add. (2)/(x - 6) + (3)/(x + 5) Simplify your answer as much as possible.",
+        "a": "(5*x+3)/((x-6)*(x+5))",
+        "result": "unknown",
+        "ts": "2026-04-21T20:54:24.980463"
+      },
+      {
+        "n": 8,
+        "q": "Add. (2)/(x - 6) + (3)/(x + 5) Simplify your answer as much as possible.",
+        "a": "(5*x-3)/((x-6)*(x+5))",
+        "result": "try_again",
+        "ts": "2026-04-21T20:54:36.983254"
+      },
+      {
+        "n": 9,
+        "q": "Subtract. (6)/(x) - (5)/(x + 3) Simplify your answer as much as possible.",
+        "a": "(x+18)/(x*(x+3))",
+        "result": "correct",
+        "ts": "2026-04-21T20:54:47.828517"
+      },
+      {
+        "n": 10,
+        "q": "Add. (3)/(x - 6) + (4)/(5 x) Simplify your answer as much as possible.",
+        "a": "(19*x-24)/(5*x*(x-6))",
+        "result": "correct",
+        "ts": "2026-04-21T20:55:00.191433"
+      },
+      {
+        "n": 11,
+        "q": "Add. (7)/(x + 3) + (6)/(x - 1) Simplify your answer as much as possible.",
+        "a": "(13*x+15)/((x+3)*(x-1))",
+        "result": "unknown",
+        "ts": "2026-04-21T20:55:14.588039"
+      },
+      {
+        "n": 12,
+        "q": "Add. (7)/(x + 3) + (6)/(x - 1) Simplify your answer as much as possible.",
+        "a": "(13*x+15)/((x+3)*(x-1))",
+        "result": "try_again",
+        "ts": "2026-04-21T20:55:27.116145"
+      },
+      {
+        "n": 13,
+        "q": "Add. (2)/(x) + (3)/(x + 6) Simplify your answer as much as possible.",
+        "a": "(5*x+12)/(x*(x+6))",
+        "result": "correct",
+        "ts": "2026-04-21T20:55:38.530319"
+      },
+      {
+        "n": 14,
+        "q": "Subtract. (5)/(2 x) - (6)/(x - 2) Simplify your answer as much as possible.",
+        "a": "(10-7*x)/(2*x*(x-2))",
+        "result": "unknown",
+        "ts": "2026-04-21T20:55:52.345177"
+      }
+    ]
+  },
+  {
+    "finished_at": "2026-04-21T20:58:32.475409",
+    "results": [
+      {
+        "n": 3,
+        "q": "Subtract. (5)/(2 x) - (6)/(x - 2) Simplify your answer as much as possible.",
+        "a": "(-7*x-10)/(2*x*(x-2))",
+        "result": "unknown",
+        "ts": "2026-04-21T20:56:45.269254"
+      },
+      {
+        "n": 4,
+        "q": "Add. (3)/(x - 6) + (4)/(x + 4) Simplify your answer as much as possible.",
+        "a": "(7*x-12)/((x-6)*(x+4))",
+        "result": "correct",
+        "ts": "2026-04-21T20:56:57.568284"
+      },
+      {
+        "n": 5,
+        "q": "Subtract. (7)/(x) - (5)/(x + 2) Simplify your answer as much as possible.",
+        "a": "(2*x+14)/(x*(x+2))",
+        "result": "correct",
+        "ts": "2026-04-21T20:57:09.366694"
+      },
+      {
+        "n": 6,
+        "q": "Add. (2)/(3 x) + (3)/(x - 5) Simplify your answer as much as possible.",
+        "a": "(11*x-30)/(3*x*(x-5))",
+        "result": "unknown",
+        "ts": "2026-04-21T20:57:23.281770"
+      },
+      {
+        "n": 7,
+        "q": "Add. (2)/(3 x) + (3)/(x - 5) Simplify your answer as much as possible.",
+        "a": "(11*x-10)/(3*x*(x-5))",
+        "result": "unknown",
+        "ts": "2026-04-21T20:57:53.762196"
+      },
+      {
+        "n": 8,
+        "q": "Add. (5)/(x + 3) + (6)/(x - 1) Simplify your answer as much as possible.",
+        "a": "(11*x+13)/((x+3)*(x-1))",
+        "result": "unknown",
+        "ts": "2026-04-21T20:58:27.682796"
+      },
+      {
+        "n": 9,
+        "q": "Add. (3)/(x + 6) + (4)/(x) Simplify your answer as much as possible.",
+        "a": "(7*x+24)/(x*(x+6))",
+        "result": "unknown",
+        "ts": "2026-04-21T20:58:32.128691"
+      }
+    ]
+  },
+  {
+    "finished_at": "2026-04-21T21:04:49.811643",
+    "results": [
+      {
+        "n": 3,
+        "q": "Add. (7 a + 2)/(4 a) + (2 a - 5)/(8 a) Simplify your answer as much as possible.",
+        "a": "(16*a-1)/(8*a)",
+        "result": "unknown",
+        "ts": "2026-04-21T21:04:40.960270"
+      }
+    ]
+  },
+  {
+    "finished_at": "2026-04-21T21:17:56.485008",
+    "results": [
+      {
+        "n": 3,
+        "q": "Simplify. Write your answers without exponents. ( (1)/(4) ) ^(- (5)/(2)) = __ 16 ^(- (5)/(4)) = __",
+        "a": "32,1/32",
+        "result": "try_again",
+        "ts": "2026-04-21T21:16:24.459597"
+      },
+      {
+        "n": 4,
+        "q": "Simplify. Write your answers without exponents. ( (1)/(32) ) ^((4)/(5)) = __ 81 ^(- (3)/(4)) = __",
+        "a": "1/16,1/27",
+        "result": "unknown",
+        "ts": "2026-04-21T21:16:46.735093"
+      },
+      {
+        "n": 5,
+        "q": "Try Again ( (1)/(32) ) ^((4)/(5)) : Fill in all the empty boxes. Simplify. Write your answers without exponents. ( (1)/(32) ) ^((4)/(5)) = __ 81 ^(- (3)/(4)) = (1)/(27)",
+        "a": "1/16,1/27",
+        "result": "try_again",
+        "ts": "2026-04-21T21:17:06.804792"
+      },
+      {
+        "n": 6,
+        "q": "Simplify. Write your answers without exponents. 625 ^(- (3)/(4)) = __ ( (1)/(27) ) ^((2)/(3)) = __",
+        "a": "1/125,1/9",
+        "result": "unknown",
+        "ts": "2026-04-21T21:17:29.206278"
+      },
+      {
+        "n": 7,
+        "q": "Let's Take a Break 625 ^(- (3)/(4)) : Fill in all the empty boxes. Simplify. Write your answers without exponents. 625 ^(- (3)/(4)) = __ ( (1)/(27) ) ^((2)/(3)) = (1)/(9) Correct Answer 625 ^(- (3)/(4",
+        "a": "1/125",
+        "result": "unknown",
+        "ts": "2026-04-21T21:17:33.753836"
+      },
+      {
+        "n": 8,
+        "q": "Let's Take a Break 625 ^(- (3)/(4)) : Fill in all the empty boxes. Simplify. Write your answers without exponents. 625 ^(- (3)/(4)) = __ ( (1)/(27) ) ^((2)/(3)) = (1)/(9) Correct Answer 625 ^(- (3)/(4",
+        "a": "1/125",
+        "result": "unknown",
+        "ts": "2026-04-21T21:17:38.123619"
+      },
+      {
+        "n": 9,
+        "q": "Let's Take a Break 625 ^(- (3)/(4)) : Fill in all the empty boxes. Simplify. Write your answers without exponents. 625 ^(- (3)/(4)) = __ ( (1)/(27) ) ^((2)/(3)) = (1)/(9) Correct Answer 625 ^(- (3)/(4",
+        "a": "1/125",
+        "result": "unknown",
+        "ts": "2026-04-21T21:17:42.553925"
+      },
+      {
+        "n": 11,
+        "q": "Let's Take a Break 625 ^(- (3)/(4)) : Fill in all the empty boxes. Simplify. Write your answers without exponents. 625 ^(- (3)/(4)) = __ ( (1)/(27) ) ^((2)/(3)) = (1)/(9) Correct Answer 625 ^(- (3)/(4",
+        "a": "1/125",
+        "result": "unknown",
+        "ts": "2026-04-21T21:17:49.704980"
+      },
+      {
+        "n": 12,
+        "q": "Let's Take a Break 625 ^(- (3)/(4)) : Fill in all the empty boxes. Simplify. Write your answers without exponents. 625 ^(- (3)/(4)) = __ ( (1)/(27) ) ^((2)/(3)) = (1)/(9) Correct Answer 625 ^(- (3)/(4",
+        "a": "1/125",
+        "result": "unknown",
+        "ts": "2026-04-21T21:17:54.060881"
+      }
+    ]
+  },
+  {
+    "finished_at": "2026-04-21T21:32:21.109221",
+    "results": [
+      {
+        "n": 3,
+        "q": "the denominator and . (- 3)/(7 - 2 sqrt(5))",
+        "a": "-3*(7+2*sqrt(5))/29",
+        "result": "unknown",
+        "ts": "2026-04-21T21:18:27.327726"
+      },
+      {
+        "n": 4,
+        "q": "the denominator and . (- 3)/(7 - 2 sqrt(5))",
+        "a": "-3*(7+2*sqrt(5))/29",
+        "result": "unknown",
+        "ts": "2026-04-21T21:18:42.586121"
+      },
+      {
+        "n": 5,
+        "q": "Rationalize the denominator and simplify. (- 5)/(4 sqrt(2) + 1)",
+        "a": "(5-20*sqrt(2))/31",
+        "result": "correct",
+        "ts": "2026-04-21T21:18:55.451502"
+      },
+      {
+        "n": 6,
+        "q": "Rationalize the denominator and simplify. (9)/(4 sqrt(2) - 2)",
+        "a": "(9*(2*sqrt(2)+1))/7",
+        "result": "unknown",
+        "ts": "2026-04-21T21:19:07.996382"
+      },
+      {
+        "n": 7,
+        "q": "Rationalize the denominator and simplify. (9)/(4 sqrt(2) - 2)",
+        "a": "9*(2*sqrt(2)+1)/14",
+        "result": "unknown",
+        "ts": "2026-04-21T21:19:37.067398"
+      },
+      {
+        "n": 8,
+        "q": "Rationalize the denominator and simplify. (5)/(7 + 2 sqrt(5))",
+        "a": "(35-10*sqrt(5))/29",
+        "result": "unknown",
+        "ts": "2026-04-21T21:20:06.489753"
+      },
+      {
+        "n": 9,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:20:14.298820"
+      },
+      {
+        "n": 10,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:20:21.878267"
+      },
+      {
+        "n": 11,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:20:28.940130"
+      },
+      {
+        "n": 13,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:20:39.385947"
+      },
+      {
+        "n": 14,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:20:46.557304"
+      },
+      {
+        "n": 15,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:20:54.885907"
+      },
+      {
+        "n": 17,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:21:05.187689"
+      },
+      {
+        "n": 18,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:21:13.288633"
+      },
+      {
+        "n": 19,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:21:20.752427"
+      },
+      {
+        "n": 21,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:21:31.043299"
+      },
+      {
+        "n": 22,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:21:39.085071"
+      },
+      {
+        "n": 23,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:21:46.793201"
+      },
+      {
+        "n": 25,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:21:57.401029"
+      },
+      {
+        "n": 26,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:22:03.969482"
+      },
+      {
+        "n": 27,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:22:11.852803"
+      },
+      {
+        "n": 29,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:22:21.582647"
+      },
+      {
+        "n": 30,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:22:28.853543"
+      },
+      {
+        "n": 31,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:22:36.346242"
+      },
+      {
+        "n": 33,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:22:46.264214"
+      },
+      {
+        "n": 34,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:22:53.322640"
+      },
+      {
+        "n": 35,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:23:04.587914"
+      },
+      {
+        "n": 37,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:23:14.523112"
+      },
+      {
+        "n": 38,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:23:22.106165"
+      },
+      {
+        "n": 39,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:23:29.679605"
+      },
+      {
+        "n": 41,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:23:40.325479"
+      },
+      {
+        "n": 42,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:23:47.860845"
+      },
+      {
+        "n": 43,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:23:55.276937"
+      },
+      {
+        "n": 45,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:24:04.893030"
+      },
+      {
+        "n": 46,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:24:12.584262"
+      },
+      {
+        "n": 47,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:24:19.958267"
+      },
+      {
+        "n": 49,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:24:29.375797"
+      },
+      {
+        "n": 50,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:24:37.307151"
+      },
+      {
+        "n": 51,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:24:44.734927"
+      },
+      {
+        "n": 53,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:24:56.206227"
+      },
+      {
+        "n": 54,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:25:03.065152"
+      },
+      {
+        "n": 55,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:25:10.237357"
+      },
+      {
+        "n": 57,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:25:20.576887"
+      },
+      {
+        "n": 58,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:25:27.433684"
+      },
+      {
+        "n": 59,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:25:35.306541"
+      },
+      {
+        "n": 61,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:25:45.155922"
+      },
+      {
+        "n": 62,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:25:52.421468"
+      },
+      {
+        "n": 63,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:25:59.181030"
+      },
+      {
+        "n": 65,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:26:08.392214"
+      },
+      {
+        "n": 66,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:26:15.862569"
+      },
+      {
+        "n": 67,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:26:22.637101"
+      },
+      {
+        "n": 69,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:26:32.775491"
+      },
+      {
+        "n": 70,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:26:40.954926"
+      },
+      {
+        "n": 71,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:26:47.717064"
+      },
+      {
+        "n": 73,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:26:58.581798"
+      },
+      {
+        "n": 74,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:27:06.100120"
+      },
+      {
+        "n": 75,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:27:13.713438"
+      },
+      {
+        "n": 77,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:27:24.371086"
+      },
+      {
+        "n": 78,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:27:32.359293"
+      },
+      {
+        "n": 79,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:27:40.850961"
+      },
+      {
+        "n": 81,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:27:50.889518"
+      },
+      {
+        "n": 82,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:27:59.200882"
+      },
+      {
+        "n": 83,
+        "q": "Rationalize the denominator and simplify. (- 5)/(3 sqrt(3) - 4)",
+        "a": "(-15*sqrt(3)-20)/11",
+        "result": "unknown",
+        "ts": "2026-04-21T21:28:14.988706"
+      },
+      {
+        "n": 84,
+        "q": "Rationalize the denominator and simplify. (- 7)/(6 + 3 sqrt(2))",
+        "a": "7*(sqrt(2)-2)/6",
+        "result": "unknown",
+        "ts": "2026-04-21T21:28:45.692567"
+      },
+      {
+        "n": 85,
+        "q": "Rationalize the denominator and simplify. (4)/(7 - 3 sqrt(2))",
+        "a": "(28+12*sqrt(2))/31",
+        "result": "correct",
+        "ts": "2026-04-21T21:28:59.954857"
+      },
+      {
+        "n": 86,
+        "q": "Rationalize the denominator and simplify. (5)/(3 sqrt(5) + 2)",
+        "a": "(15*sqrt(5)-10)/41",
+        "result": "correct",
+        "ts": "2026-04-21T21:29:13.576637"
+      },
+      {
+        "n": 87,
+        "q": "Rationalize the denominator and simplify. (- 2)/(3 sqrt(5) + 6)",
+        "a": "(3-sqrt(5))/6",
+        "result": "unknown",
+        "ts": "2026-04-21T21:29:24.221060"
+      },
+      {
+        "n": 88,
+        "q": "Rationalize the denominator and simplify. (- 2)/(3 sqrt(5) + 6)",
+        "a": "(3-sqrt(5))/6",
+        "result": "try_again",
+        "ts": "2026-04-21T21:29:40.916302"
+      },
+      {
+        "n": 89,
+        "q": "Rationalize the denominator and simplify. (3)/(7 - 3 sqrt(2))",
+        "a": "(21+9*sqrt(2))/31",
+        "result": "correct",
+        "ts": "2026-04-21T21:29:54.958605"
+      },
+      {
+        "n": 90,
+        "q": "Rationalize the denominator and simplify. (9)/(2 sqrt(5) + 3)",
+        "a": "(18*sqrt(5)-27)/11",
+        "result": "correct",
+        "ts": "2026-04-21T21:30:08.696113"
+      },
+      {
+        "n": 91,
+        "q": "Rationalize the denominator and simplify. (- 9)/(4 - 2 sqrt(2))",
+        "a": "-9*(2+sqrt(2))/4",
+        "result": "unknown",
+        "ts": "2026-04-21T21:30:20.921135"
+      },
+      {
+        "n": 92,
+        "q": "Rationalize the denominator and simplify. (- 9)/(4 - 2 sqrt(2))",
+        "a": "-9*(2+sqrt(2))/4",
+        "result": "unknown",
+        "ts": "2026-04-21T21:30:51.440157"
+      },
+      {
+        "n": 93,
+        "q": "Rationalize the denominator and simplify. (5)/(5 - 2 sqrt(3))",
+        "a": "(25+10*sqrt(3))/13",
+        "result": "correct",
+        "ts": "2026-04-21T21:31:05.054134"
+      },
+      {
+        "n": 94,
+        "q": "Rationalize the denominator and simplify. (- 3)/(3 sqrt(5) + 4)",
+        "a": "(12-9*sqrt(5))/29",
+        "result": "correct",
+        "ts": "2026-04-21T21:31:15.461443"
+      },
+      {
+        "n": 96,
+        "q": "Use the distributive property to remove the parentheses. 9 z ^(9) ( 7 z + 2 z ^(5) + 4 ) Simplify your answer as much as possible.",
+        "a": "63*z^10+18*z^14+36*z^9",
+        "result": "correct",
+        "ts": "2026-04-21T21:31:33.738575"
+      },
+      {
+        "n": 97,
+        "q": "Use the distributive property to remove the parentheses. ( 3 c ^(3) - 9 c ^(5) ) 7 c ^(2) Simplify your answer as much as possible.",
+        "a": "21*c^5-63*c^7",
+        "result": "correct",
+        "ts": "2026-04-21T21:31:44.689322"
+      },
+      {
+        "n": 98,
+        "q": "Use the distributive property to remove the parentheses. 3 z ^(5) ( 7 - 5 z ^(3) ) Simplify your answer as much as possible.",
+        "a": "21*z^5-15*z^8",
+        "result": "correct",
+        "ts": "2026-04-21T21:31:55.477629"
+      },
+      {
+        "n": 100,
+        "q": "Fill in the blank to make equivalent rational expressions.",
+        "a": "3",
+        "result": "unknown",
+        "ts": "2026-04-21T21:32:19.003573"
+      }
+    ]
+  },
+  {
+    "finished_at": "2026-04-21T21:38:37.575358",
+    "results": [
+      {
+        "n": 3,
+        "q": "Solve for u . 3 u ^(2) - 21 u = 0 If there is more than one solution, separate them with commas. If there is no solution, click on \"No solution\".",
+        "a": "0,7",
+        "result": "unknown",
+        "ts": "2026-04-21T21:33:38.341846"
+      },
+      {
+        "n": 4,
+        "q": "Solve for u . 3 u ^(2) - 21 u = 0 If there is more than one solution, separate them with commas. If there is no solution, click on \"No solution\".",
+        "a": "0,7",
+        "result": "unknown",
+        "ts": "2026-04-21T21:33:45.165056"
+      },
+      {
+        "n": 5,
+        "q": "Solve for u . 3 u ^(2) - 21 u = 0 If there is more than one solution, separate them with commas. If there is no solution, click on \"No solution\".",
+        "a": "0,7",
+        "result": "unknown",
+        "ts": "2026-04-21T21:33:52.145994"
+      },
+      {
+        "n": 7,
+        "q": "Solve for u . 3 u ^(2) - 21 u = 0 If there is more than one solution, separate them with commas. If there is no solution, click on \"No solution\".",
+        "a": "0,7",
+        "result": "unknown",
+        "ts": "2026-04-21T21:34:01.463265"
+      },
+      {
+        "n": 8,
+        "q": "Solve for u . 3 u ^(2) - 21 u = 0 If there is more than one solution, separate them with commas. If there is no solution, click on \"No solution\".",
+        "a": "0,7",
+        "result": "unknown",
+        "ts": "2026-04-21T21:34:08.441241"
+      },
+      {
+        "n": 9,
+        "q": "Solve for u . 3 u ^(2) - 21 u = 0 If there is more than one solution, separate them with commas. If there is no solution, click on \"No solution\".",
+        "a": "0,7",
+        "result": "unknown",
+        "ts": "2026-04-21T21:34:15.158346"
+      },
+      {
+        "n": 11,
+        "q": "Solve for x . 6 x ^(2) + 30 x = 0 If there is more than one solution, separate them with commas. If there is no solution, click on \"No solution\".",
+        "a": "0,-5",
+        "result": "correct",
+        "ts": "2026-04-21T21:34:25.863664"
+      },
+      {
+        "n": 12,
+        "q": "Solve for u . 5 u ^(2) = 20 u If there is more than one solution, separate them with commas. If there is no solution, click on \"No solution\".",
+        "a": "0,4",
+        "result": "correct",
+        "ts": "2026-04-21T21:34:33.064355"
+      },
+      {
+        "n": 13,
+        "q": "Solve for x . x ^(2) = 12 x If there is more than one solution, separate them with commas. If there is no solution, click on \"No solution\".",
+        "a": "0,12",
+        "result": "correct",
+        "ts": "2026-04-21T21:34:40.680391"
+      },
+      {
+        "n": 15,
+        "q": "Factor completely. 4 w ^(2) + 40 w + 64",
+        "a": "4*(w+2)*(w+8)",
+        "result": "correct",
+        "ts": "2026-04-21T21:34:57.888706"
+      },
+      {
+        "n": 16,
+        "q": "Factor completely. 5 w ^(2) - 30 w - 70",
+        "a": "5*(w^2-6*w-14)",
+        "result": "correct",
+        "ts": "2026-04-21T21:35:08.786810"
+      },
+      {
+        "n": 17,
+        "q": "Factor completely. 3 w ^(2) - 30 w - 72",
+        "a": "3*(w-12)*(w+2)",
+        "result": "correct",
+        "ts": "2026-04-21T21:35:19.358549"
+      },
+      {
+        "n": 19,
+        "q": "Factor the following expression. 20 v w ^(3) x ^(4) - 24 v ^(3) w ^(9)",
+        "a": "4*v*w^3(5*x^4-6*v^2*w^6)",
+        "result": "correct",
+        "ts": "2026-04-21T21:35:42.698127"
+      },
+      {
+        "n": 20,
+        "q": "Factor the following expression. 18 w ^(8) x ^(8) + 24 w ^(6) x ^(3) y ^(2)",
+        "a": "6*w^6*x^3*(3*w^2*x^5+4*y^2)",
+        "result": "correct",
+        "ts": "2026-04-21T21:35:58.621897"
+      },
+      {
+        "n": 21,
+        "q": "Factor the following expression. 6 v ^(7) w ^(8) - 24 v ^(2) w ^(6) x ^(5)",
+        "a": "6*v^2*w^6*(v^5*w^2-4*x^5)",
+        "result": "correct",
+        "ts": "2026-04-21T21:36:14.292357"
+      },
+      {
+        "n": 23,
+        "q": "Multiply. (x ^(2) + x - 2)/(x - 3) * (x + 1)/(3 x - 3) Simplify your answer as much as possible.",
+        "a": "((x+2)*(x+1))/(3*(x-3))",
+        "result": "correct",
+        "ts": "2026-04-21T21:36:33.857482"
+      },
+      {
+        "n": 24,
+        "q": "Multiply. (4 x + 8)/(x ^(2) - 3 x + 2) * (x ^(2) + 2 x - 3)/(x + 2) Simplify your answer as much as possible.",
+        "a": "4*(x+3)/(x-1)",
+        "result": "unknown",
+        "ts": "2026-04-21T21:36:45.761287"
+      },
+      {
+        "n": 25,
+        "q": "Multiply. (4 x + 8)/(x ^(2) - 3 x + 2) * (x ^(2) + 2 x - 3)/(x + 2) Simplify your answer as much as possible.",
+        "a": "4*(x+3)/(x-2)",
+        "result": "unknown",
+        "ts": "2026-04-21T21:37:13.995958"
+      },
+      {
+        "n": 26,
+        "q": "Multiply. (x + 2)/(3 x + 3) * (x ^(2) - x - 2)/(x ^(2) - x - 6) Simplify your answer as much as possible.",
+        "a": "(x-2)/(3*(x-3))",
+        "result": "unknown",
+        "ts": "2026-04-21T21:37:41.508898"
+      },
+      {
+        "n": 27,
+        "q": "Multiply. (3 x + 6)/(x - 3) * (x - 1)/(x ^(2) - 4) Simplify your answer as much as possible.",
+        "a": "3*(x+2)*(x-1)/((x-3)*(x-2)*(x+2))",
+        "result": "unknown",
+        "ts": "2026-04-21T21:37:46.256926"
+      },
+      {
+        "n": 28,
+        "q": "Multiply. (3 x + 6)/(x - 3) * (x - 1)/(x ^(2) - 4) Simplify your answer as much as possible.",
+        "a": "3*(x+2)*(x-1)/((x-3)*(x-2)*(x+2))",
+        "result": "unknown",
+        "ts": "2026-04-21T21:37:51.165299"
+      },
+      {
+        "n": 29,
+        "q": "Multiply. (3 x + 6)/(x - 3) * (x - 1)/(x ^(2) - 4) Simplify your answer as much as possible.",
+        "a": "3*(x+2)*(x-1)/((x-3)*(x-2)*(x+2))",
+        "result": "unknown",
+        "ts": "2026-04-21T21:37:55.783812"
+      },
+      {
+        "n": 31,
+        "q": "Multiply. (3 x + 6)/(x - 3) * (x - 1)/(x ^(2) - 4) Simplify your answer as much as possible.",
+        "a": "3*(x+2)*(x-1)/((x-3)*(x-2)*(x+2))",
+        "result": "unknown",
+        "ts": "2026-04-21T21:38:03.233784"
+      },
+      {
+        "n": 32,
+        "q": "Multiply. (3 x + 6)/(x - 3) * (x - 1)/(x ^(2) - 4) Simplify your answer as much as possible.",
+        "a": "3*(x+2)*(x-1)/((x-3)*(x-2)*(x+2))",
+        "result": "unknown",
+        "ts": "2026-04-21T21:38:07.873117"
+      },
+      {
+        "n": 33,
+        "q": "Multiply. (3 x + 6)/(x - 3) * (x - 1)/(x ^(2) - 4) Simplify your answer as much as possible.",
+        "a": "3*(x+2)*(x-1)/((x-3)*(x-2)*(x+2))",
+        "result": "unknown",
+        "ts": "2026-04-21T21:38:12.483848"
+      },
+      {
+        "n": 35,
+        "q": "Multiply. (3 x + 6)/(x - 3) * (x - 1)/(x ^(2) - 4) Simplify your answer as much as possible.",
+        "a": "3*(x+2)*(x-1)/((x-3)*(x-2)*(x+2))",
+        "result": "unknown",
+        "ts": "2026-04-21T21:38:20.470781"
+      },
+      {
+        "n": 36,
+        "q": "Multiply. (3 x + 6)/(x - 3) * (x - 1)/(x ^(2) - 4) Simplify your answer as much as possible.",
+        "a": "3*(x+2)*(x-1)/((x-3)*(x-2)*(x+2))",
+        "result": "unknown",
+        "ts": "2026-04-21T21:38:25.136876"
+      },
+      {
+        "n": 37,
+        "q": "Multiply. (3 x + 6)/(x - 3) * (x - 1)/(x ^(2) - 4) Simplify your answer as much as possible.",
+        "a": "3*(x+2)*(x-1)/((x-3)*(x-2)*(x+2))",
+        "result": "unknown",
+        "ts": "2026-04-21T21:38:30.117727"
+      },
+      {
+        "n": 39,
+        "q": "Multiply. (3 x + 6)/(x - 3) * (x - 1)/(x ^(2) - 4) Simplify your answer as much as possible.",
+        "a": "3*(x+2)*(x-1)/((x-3)*(x-2)*(x+2))",
+        "result": "unknown",
+        "ts": "2026-04-21T21:38:37.357083"
+      }
+    ]
+  },
+  {
+    "finished_at": "2026-04-21T21:48:35.064732",
+    "results": [
+      {
+        "n": 3,
+        "q": "Simplify. ((3 x - 6)/(x))/((9)/(2 x))",
+        "a": "2*(x-2)/3",
+        "result": "unknown",
+        "ts": "2026-04-21T21:43:24.417832"
+      },
+      {
+        "n": 4,
+        "q": "Simplify. ((3 x + 9)/(x + 2))/((2 x + 6)/(x))",
+        "a": "(3x)/(2x+4)",
+        "result": "unknown",
+        "ts": "2026-04-21T21:43:27.849494"
+      },
+      {
+        "n": 5,
+        "q": "Simplify. ((3 x + 9)/(x + 2))/((2 x + 6)/(x))",
+        "a": "(3x)/(2x+4)",
+        "result": "unknown",
+        "ts": "2026-04-21T21:43:31.288030"
+      },
+      {
+        "n": 6,
+        "q": "Simplify. ((3 x + 9)/(x + 2))/((2 x + 6)/(x))",
+        "a": "(3x)/(2x+4)",
+        "result": "unknown",
+        "ts": "2026-04-21T21:43:34.717111"
+      },
+      {
+        "n": 8,
+        "q": "Simplify. ((3 x + 9)/(x + 2))/((2 x + 6)/(x))",
+        "a": "(3x)/(2x+4)",
+        "result": "unknown",
+        "ts": "2026-04-21T21:43:40.676348"
+      },
+      {
+        "n": 9,
+        "q": "Simplify. ((3 x + 9)/(x + 2))/((2 x + 6)/(x))",
+        "a": "(3x)/(2x+4)",
+        "result": "unknown",
+        "ts": "2026-04-21T21:43:44.098407"
+      },
+      {
+        "n": 10,
+        "q": "Simplify. ((3 x + 9)/(x + 2))/((2 x + 6)/(x))",
+        "a": "(3x)/(2x+4)",
+        "result": "unknown",
+        "ts": "2026-04-21T21:43:47.509400"
+      },
+      {
+        "n": 12,
+        "q": "Simplify. ((3 x + 9)/(x + 2))/((2 x + 6)/(x))",
+        "a": "(3x)/(2x+4)",
+        "result": "unknown",
+        "ts": "2026-04-21T21:43:53.468485"
+      },
+      {
+        "n": 13,
+        "q": "Simplify. ((3 x + 9)/(x + 2))/((2 x + 6)/(x))",
+        "a": "(3x)/(2x+4)",
+        "result": "unknown",
+        "ts": "2026-04-21T21:43:56.892961"
+      },
+      {
+        "n": 14,
+        "q": "Simplify. ((3 x + 9)/(x + 2))/((2 x + 6)/(x))",
+        "a": "(3x)/(2x+4)",
+        "result": "unknown",
+        "ts": "2026-04-21T21:44:00.315628"
+      },
+      {
+        "n": 16,
+        "q": "Simplify. ((3 x + 9)/(x + 2))/((2 x + 6)/(x))",
+        "a": "(3x)/(2x+4)",
+        "result": "unknown",
+        "ts": "2026-04-21T21:44:06.264761"
+      },
+      {
+        "n": 17,
+        "q": "Simplify. ((3 x + 9)/(x + 2))/((2 x + 6)/(x))",
+        "a": "(3x)/(2x+4)",
+        "result": "unknown",
+        "ts": "2026-04-21T21:44:09.691116"
+      },
+      {
+        "n": 18,
+        "q": "Simplify. ((3 x + 9)/(x + 2))/((2 x + 6)/(x))",
+        "a": "(3x)/(2x+4)",
+        "result": "unknown",
+        "ts": "2026-04-21T21:44:13.107013"
+      },
+      {
+        "n": 20,
+        "q": "Simplify. ((3 x + 9)/(x + 2))/((2 x + 6)/(x))",
+        "a": "(3x)/(2x+4)",
+        "result": "unknown",
+        "ts": "2026-04-21T21:44:19.073026"
+      },
+      {
+        "n": 21,
+        "q": "Simplify. ((3 x + 9)/(x + 2))/((2 x + 6)/(x))",
+        "a": "(3x)/(2x+4)",
+        "result": "unknown",
+        "ts": "2026-04-21T21:44:22.499560"
+      },
+      {
+        "n": 22,
+        "q": "Simplify. ((3 x + 9)/(x + 2))/((2 x + 6)/(x))",
+        "a": "(3x)/(2x+4)",
+        "result": "unknown",
+        "ts": "2026-04-21T21:44:25.926538"
+      },
+      {
+        "n": 24,
+        "q": "Simplify. ((3 x + 9)/(x + 2))/((2 x + 6)/(x))",
+        "a": "(3x)/(2x+4)",
+        "result": "unknown",
+        "ts": "2026-04-21T21:44:31.890160"
+      },
+      {
+        "n": 25,
+        "q": "Simplify. ((3 x + 9)/(x + 2))/((2 x + 6)/(x))",
+        "a": "(3x)/(2x+4)",
+        "result": "unknown",
+        "ts": "2026-04-21T21:44:35.322020"
+      },
+      {
+        "n": 26,
+        "q": "Simplify. ((3 x + 9)/(x + 2))/((2 x + 6)/(x))",
+        "a": "(3x)/(2x+4)",
+        "result": "unknown",
+        "ts": "2026-04-21T21:44:38.746868"
+      },
+      {
+        "n": 28,
+        "q": "Simplify. ((3 x + 9)/(x + 2))/((2 x + 6)/(x))",
+        "a": "(3x)/(2x+4)",
+        "result": "unknown",
+        "ts": "2026-04-21T21:44:44.707698"
+      },
+      {
+        "n": 29,
+        "q": "Simplify. ((3 x + 9)/(x + 2))/((2 x + 6)/(x))",
+        "a": "(3x)/(2x+4)",
+        "result": "unknown",
+        "ts": "2026-04-21T21:44:48.127713"
+      },
+      {
+        "n": 30,
+        "q": "Simplify. ((3 x + 9)/(x + 2))/((2 x + 6)/(x))",
+        "a": "(3x)/(2x+4)",
+        "result": "unknown",
+        "ts": "2026-04-21T21:44:51.544704"
+      },
+      {
+        "n": 31,
+        "q": "Simplify. ((3)/(2 x + 10))/((15 x)/(x + 5))",
+        "a": "(1)/(10x)",
+        "result": "correct",
+        "ts": "2026-04-21T21:44:58.486129"
+      },
+      {
+        "n": 32,
+        "q": "Simplify. ((x)/(12 x + 36))/((x ^(3))/(4 x + 16))",
+        "a": "(x+4)/(3x^3+9x^2)",
+        "result": "correct",
+        "ts": "2026-04-21T21:45:08.793807"
+      },
+      {
+        "n": 33,
+        "q": "Simplify. ((x + 3)/(x + 2))/((3 x)/(4 x + 8))",
+        "a": "(4x+12)/(3x)",
+        "result": "correct",
+        "ts": "2026-04-21T21:45:17.058316"
+      },
+      {
+        "n": 35,
+        "q": "Multiply. (x ^(2) - 5 x + 6)/(3 x + 3) * (x + 1)/(x ^(2) - 4 x + 3) Simplify your answer as much as possible.",
+        "a": "(x-2)/(3x-3)",
+        "result": "correct",
+        "ts": "2026-04-21T21:45:29.803685"
+      },
+      {
+        "n": 36,
+        "q": "Multiply. (x ^(2) - x - 2)/(x ^(2) + x - 2) * (4 x + 8)/(x - 2) Simplify your answer as much as possible.",
+        "a": "(4x+4)/(x-1)",
+        "result": "correct",
+        "ts": "2026-04-21T21:45:38.056879"
+      },
+      {
+        "n": 37,
+        "q": "Multiply. (x + 1)/(4 x - 8) * (x ^(2) + x - 6)/(x - 3) Simplify your answer as much as possible.",
+        "a": "(x^2+4x+3)/(4x-12)",
+        "result": "correct",
+        "ts": "2026-04-21T21:45:48.367606"
+      },
+      {
+        "n": 39,
+        "q": "Fill in the blank to make equivalent rational expressions.",
+        "a": "1",
+        "result": "unknown",
+        "ts": "2026-04-21T21:46:01.173483"
+      },
+      {
+        "n": 40,
+        "q": "Try Again Your answer is incorrect. Fill in the blank to make equivalent rational expressions.",
+        "a": "1",
+        "result": "try_again",
+        "ts": "2026-04-21T21:46:11.730841"
+      },
+      {
+        "n": 41,
+        "q": "Fill in the blank to make equivalent rational expressions.",
+        "a": "1",
+        "result": "unknown",
+        "ts": "2026-04-21T21:46:19.931368"
+      },
+      {
+        "n": 42,
+        "q": "Try Again Your answer is incorrect. Fill in the blank to make equivalent rational expressions.",
+        "a": "1",
+        "result": "unknown",
+        "ts": "2026-04-21T21:46:36.682341"
+      },
+      {
+        "n": 43,
+        "q": "Correct Answer (- 6)/(5 v + 6) = (- 18)/(15 v + 18)",
+        "a": "all real numbers except -6/5",
+        "result": "unknown",
+        "ts": "2026-04-21T21:46:41.405800"
+      },
+      {
+        "n": 44,
+        "q": "Correct Answer (- 6)/(5 v + 6) = (- 18)/(15 v + 18)",
+        "a": "all real numbers except -6/5",
+        "result": "unknown",
+        "ts": "2026-04-21T21:46:45.734300"
+      },
+      {
+        "n": 45,
+        "q": "Correct Answer (- 6)/(5 v + 6) = (- 18)/(15 v + 18)",
+        "a": "all real numbers except -6/5",
+        "result": "unknown",
+        "ts": "2026-04-21T21:46:50.102745"
+      },
+      {
+        "n": 47,
+        "q": "Correct Answer (- 6)/(5 v + 6) = (- 18)/(15 v + 18)",
+        "a": "all real numbers except -6/5",
+        "result": "unknown",
+        "ts": "2026-04-21T21:46:57.047010"
+      },
+      {
+        "n": 48,
+        "q": "Correct Answer (- 6)/(5 v + 6) = (- 18)/(15 v + 18)",
+        "a": "all real numbers except -6/5",
+        "result": "unknown",
+        "ts": "2026-04-21T21:47:01.346545"
+      },
+      {
+        "n": 49,
+        "q": "Correct Answer (- 6)/(5 v + 6) = (- 18)/(15 v + 18)",
+        "a": "all real numbers except -6/5",
+        "result": "unknown",
+        "ts": "2026-04-21T21:47:05.831256"
+      },
+      {
+        "n": 51,
+        "q": "Correct Answer (- 6)/(5 v + 6) = (- 18)/(15 v + 18)",
+        "a": "all real numbers except -6/5",
+        "result": "unknown",
+        "ts": "2026-04-21T21:47:12.861587"
+      },
+      {
+        "n": 52,
+        "q": "Correct Answer (- 6)/(5 v + 6) = (- 18)/(15 v + 18)",
+        "a": "all real numbers except -6/5",
+        "result": "unknown",
+        "ts": "2026-04-21T21:47:18.690824"
+      },
+      {
+        "n": 53,
+        "q": "Correct Answer (- 6)/(5 v + 6) = (- 18)/(15 v + 18)",
+        "a": "all real numbers except -6/5",
+        "result": "unknown",
+        "ts": "2026-04-21T21:47:28.765778"
+      },
+      {
+        "n": 55,
+        "q": "Correct Answer (- 6)/(5 v + 6) = (- 18)/(15 v + 18)",
+        "a": "all real numbers except -6/5",
+        "result": "unknown",
+        "ts": "2026-04-21T21:47:35.690074"
+      },
+      {
+        "n": 56,
+        "q": "Correct Answer (- 6)/(5 v + 6) = (- 18)/(15 v + 18)",
+        "a": "all real numbers except -6/5",
+        "result": "unknown",
+        "ts": "2026-04-21T21:47:40.099747"
+      },
+      {
+        "n": 57,
+        "q": "Correct Answer (- 6)/(5 v + 6) = (- 18)/(15 v + 18)",
+        "a": "all real numbers except -6/5",
+        "result": "unknown",
+        "ts": "2026-04-21T21:47:44.550157"
+      },
+      {
+        "n": 59,
+        "q": "Correct Answer (- 6)/(5 v + 6) = (- 18)/(15 v + 18)",
+        "a": "all real numbers except -6/5",
+        "result": "unknown",
+        "ts": "2026-04-21T21:47:51.544245"
+      },
+      {
+        "n": 60,
+        "q": "Correct Answer (- 6)/(5 v + 6) = (- 18)/(15 v + 18)",
+        "a": "all real numbers except -6/5",
+        "result": "unknown",
+        "ts": "2026-04-21T21:47:56.051607"
+      },
+      {
+        "n": 61,
+        "q": "Correct Answer (- 6)/(5 v + 6) = (- 18)/(15 v + 18)",
+        "a": "all real numbers except -6/5",
+        "result": "unknown",
+        "ts": "2026-04-21T21:48:00.295686"
+      },
+      {
+        "n": 63,
+        "q": "Correct Answer (- 6)/(5 v + 6) = (- 18)/(15 v + 18)",
+        "a": "all real numbers except -6/5",
+        "result": "unknown",
+        "ts": "2026-04-21T21:48:07.432785"
+      },
+      {
+        "n": 64,
+        "q": "Correct Answer (- 6)/(5 v + 6) = (- 18)/(15 v + 18)",
+        "a": "all real numbers except -6/5",
+        "result": "unknown",
+        "ts": "2026-04-21T21:48:11.885580"
+      },
+      {
+        "n": 65,
+        "q": "Correct Answer (- 6)/(5 v + 6) = (- 18)/(15 v + 18)",
+        "a": "all real numbers except -6/5",
+        "result": "unknown",
+        "ts": "2026-04-21T21:48:16.343146"
+      },
+      {
+        "n": 67,
+        "q": "Correct Answer (- 6)/(5 v + 6) = (- 18)/(15 v + 18)",
+        "a": "all real numbers except -6/5",
+        "result": "unknown",
+        "ts": "2026-04-21T21:48:23.704779"
+      },
+      {
+        "n": 68,
+        "q": "Correct Answer (- 6)/(5 v + 6) = (- 18)/(15 v + 18)",
+        "a": "all real numbers except -6/5",
+        "result": "unknown",
+        "ts": "2026-04-21T21:48:28.115598"
+      },
+      {
+        "n": 69,
+        "q": "Correct Answer (- 6)/(5 v + 6) = (- 18)/(15 v + 18)",
+        "a": "all real numbers except -6/5",
+        "result": "unknown",
+        "ts": "2026-04-21T21:48:32.551514"
+      }
+    ]
+  },
+  {
+    "finished_at": "2026-04-21T21:50:17.117756",
+    "results": [
+      {
+        "n": 3,
+        "q": "Fill in the blank to make equivalent rational expressions.",
+        "a": "1",
+        "result": "unknown",
+        "ts": "2026-04-21T21:49:31.842025"
+      },
+      {
+        "n": 4,
+        "q": "Try Again Your answer is incorrect. Fill in the blank to make equivalent rational expressions.",
+        "a": "1",
+        "result": "unknown",
+        "ts": "2026-04-21T21:49:47.997196"
+      },
+      {
+        "n": 5,
+        "q": "Try Again Your answer is incorrect. Fill in the blank to make equivalent rational expressions.",
+        "a": "x",
+        "result": "try_again",
+        "ts": "2026-04-21T21:50:03.480138"
+      },
+      {
+        "n": 6,
+        "q": "Fill in the blank to make equivalent rational expressions.",
+        "a": "1",
+        "result": "unknown",
+        "ts": "2026-04-21T21:50:09.096658"
+      },
+      {
+        "n": 7,
+        "q": "Correct Answer (8 v)/(4 v - 7) = (64 v)/(32 v - 56)",
+        "a": "(64*v)/(32*v-56)",
+        "result": "unknown",
+        "ts": "2026-04-21T21:50:13.634040"
+      }
+    ]
+  },
+  {
+    "finished_at": "2026-04-21T22:10:56.114029",
+    "results": [
+      {
+        "n": 3,
+        "q": "for Y . X = (4)/(7) ( Y + Z )",
+        "a": "4*(Y+Z)/(7*X)",
+        "result": "unknown",
+        "ts": "2026-04-21T22:10:28.232100"
+      },
+      {
+        "n": 4,
+        "q": "for Y . X = (4)/(7) ( Y + Z )",
+        "a": "4*(Y+Z)/(7*X)",
+        "result": "unknown",
+        "ts": "2026-04-21T22:10:35.074859"
+      },
+      {
+        "n": 5,
+        "q": "for Y . X = (4)/(7) ( Y + Z )",
+        "a": "4*(Y+Z)/(7*Y)",
+        "result": "unknown",
+        "ts": "2026-04-21T22:10:41.902260"
+      },
+      {
+        "n": 7,
+        "q": "for Y . X = (4)/(7) ( Y + Z )",
+        "a": "4*(Y+Z)/(7*X)",
+        "result": "unknown",
+        "ts": "2026-04-21T22:10:51.171913"
+      }
+    ]
+  }
+]

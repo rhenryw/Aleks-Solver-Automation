@@ -1,3 +1,5 @@
 # ALEKS AutoSolver dependencies
-anthropic>=0.40.0    # Claude API
+openai>=1.0.0        # OpenAI-compatible API client
 playwright>=1.40.0   # Browser automation
+python-dotenv>=1.0.0 # .env file support
+sympy>=1.12          # Deterministic algebra simplification

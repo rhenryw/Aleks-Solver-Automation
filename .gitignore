@@ -1,0 +1,7 @@
+.env
+.aleks_session_state.json
+answer_cache.json
+recordings/
+screenshots/
+__pycache__/
+*.pyc

@@ -1,137 +1,137 @@
 """
 config.py — ALEKS AutoSolver configuration.
+
+Only non-secret settings live here. API keys/endpoints come from the
+environment (see .env.example) or are overridden at runtime.
 """
 
-# ─── ALEKS Credentials ─────────────────────────────────────────
-ALEKS_URL = "https://www.aleks.com"
+# ─── ALEKS URLs ─────────────────────────────────────────────────
+ALEKS_HOME_URL  = "https://www.aleks.com/student/home"
 ALEKS_LOGIN_URL = "https://www.aleks.com/login"
 
-# ─── Claude API ─────────────────────────────────────────────────
-CLAUDE_MODEL = "claude-sonnet-4-20250514"
-CLAUDE_MAX_TOKENS = 1024
-CLAUDE_TEMPERATURE = 0.1  # Low = deterministic math answers
+
+# ─── Real ALEKS selectors (captured via record_session.py) ──────
+# These IDs are stable across ALEKS courses as of 2026.
+SELECTORS = {
+    # Home / dashboard
+    "start_learning":    "#smt_bottomnav_button_input_start_learning",
+
+    # Problem page — bottom-nav buttons.
+    # `continue_learning` / `try_again` share the same ID — the button's
+    # label changes ("Start", "Continue My Path", "Try Again") but the
+    # underlying action is always "advance past the current state".
+    "check_answer":      "#smt_bottomnav_button_input_checkAnswer",
+    "next_correct":      "#smt_bottomnav_button_input_learningCorrect",
+    "new_item":          "#smt_bottomnav_button_input_newItem",
+    "continue_learning": "#smt_bottomnav_button_input_learning",
+    "try_again":         "#smt_bottomnav_button_input_learning",
+
+    # "Explain" / secondary action buttons
+    "secondary_button":  "button[id$='_secondary_button']",
+
+    # Answer editor ("ansed" = answer editor). Inputs come in a few flavors:
+    #   ansed_input_ansed…       — single math input (most problems)
+    #   ansed_input_tabed…       — labeled boxes inside a <table>
+    #                              (e.g. "Degree: __  Leading coefficient: __")
+    #   ansed_input_mced…        — multiple-choice style
+    "ansed_root":        "[id^='ansed_root_']",
+    "ansed_tree":        ".ansed_tree",
+    "ansed_input":       "[id^='ansed_input_']",
+
+    # Iframes — ALEKS embeds problems in iframes sometimes
+    "problem_iframe":    "iframe[id^='iframe'], iframe[name*='problem'], iframe[src*='alekscgi']",
+
+    # Graph / number-line editor ("figed" = figure editor).
+    # The click surface and its four toolbar buttons (open dot, closed dot,
+    # interval, eraser). IDs include a run-specific suffix after "figed_I"
+    # so we match the common prefix / suffix instead.
+    "figed_root":        "[id^='figed_I']",
+    "figed_label":       "[id^='label_figed_figed']",
+    "figed_surface":     "[id^='figed_events_']",
+    "figed_open":        "[id*='_figed_lineopen']",
+    "figed_closed":      "[id*='_figed_lineclose']",
+    "figed_interval":    "[id*='_figed_lineinterval']",
+    "figed_eraser":      "[id*='_figed_eraser']",
+    "figed_reset":       "[id*='_figed_reset']",
+    "ansed_reset":       "[id*='_ansed_reset']",
+}
+
+# URL fragments on ALEKS indicating current page state
+URL_FRAGMENT_HOME = "#home"
+URL_FRAGMENT_ITEM = "#item"    # a problem is currently shown
+
+
+# ─── AI (OpenAI-compatible) ─────────────────────────────────────
+# Overridden by env: OPENAI_BASE_URL, OPENAI_API_KEY, AI_MODEL
+MODEL       = "gpt-4o"
+MAX_TOKENS  = 2048
+TEMPERATURE = 0.1
 
 SYSTEM_PROMPT = (
     "You are a precise math solver. You receive a math problem extracted from ALEKS. "
     "Return ONLY the final answer in the exact format ALEKS expects:\n"
+    "- ALWAYS simplify your answer as much as possible unless the problem "
+    "explicitly says otherwise. Reduce fractions to lowest terms "
+    "(e.g. 6/8 → 3/4, 10/-4 → -5/2). Combine like terms. Rationalize "
+    "denominators (sqrt(2)/2, not 1/sqrt(2)). Simplify radicals by "
+    "pulling out perfect-power factors (sqrt(50) → 5*sqrt(2), "
+    "root(3,54) → 3*root(3,2)). Reduce exponents (x^2*x^3 → x^5). "
+    "Give exact values, not decimal approximations, unless the problem "
+    "asks to 'round to N decimal places'.\n"
+    "- For EQUATIONS solved for a variable (e.g. 'Solve for x. 3 = 18x − 6y'): "
+    "do NOT prefix with 'x =' — ALEKS shows the variable label; give only the RHS "
+    "(answer '(3+6y)/18', NOT 'x = (3+6y)/18').\n"
+    "- For INEQUALITIES (problems that say 'Solve the inequality'): DO include the "
+    "full relation with the variable. Examples: 'x<=4', 'x>-3', 'y>=1/2'. Use the "
+    "ASCII operators <=, >=, <, > (never ≤/≥ or words). The ALEKS answer widget has "
+    "a two-slot template that needs both the variable AND the bound.\n"
     "- For numerical answers: just the number (e.g., 3.14)\n"
-    "- For fractions: use / (e.g., 3/4)\n"
+    "- For fractions: use / (e.g., 3/4). Always parenthesise the numerator and "
+    "denominator when either is a sum/difference (e.g., (3+6y)/18, NOT 3+6y/18).\n"
+    "- For exponents: use ^ (e.g., x^2 + 2*x*y + y^2)\n"
+    "- For square roots: use sqrt(...) with parentheses around the entire radicand "
+    "(e.g., 5*sqrt(6), sqrt(2)/2, 4*sqrt(7)). Never use √ or \\sqrt.\n"
+    "- For nth roots: use root(n, x) (e.g., root(3, 8) for cube root of 8).\n"
+    "- For multiplication: always use * between a coefficient and a radical "
+    "or variable (e.g., 5*sqrt(6), not 5sqrt(6)).\n"
     "- For multiple choice: just the letter (e.g., B)\n"
     "- For expressions: use standard notation (e.g., 2x + 3)\n"
+    "- For problems with MULTIPLE answer boxes on the same screen (e.g. "
+    "'Degree: __  Leading coefficient: __', or two evaluations like "
+    "'216^(1/3) = __' and '16^(1/4) = __', or 'x = __, y = __'): return "
+    "the answers in order, separated by commas with no spaces. "
+    "Examples: '6,-1' for (degree=6, coeff=-1); '6,2' for the two evaluations; "
+    "'3,-2' for (x=3, y=-2). Do NOT include labels or variable names.\n"
     "- For graphing questions: return a JSON object with this EXACT format:\n"
     '  {"type":"graph","asymptotes":[-3.14,0,3.14],"points":[[1.57,1],[-1.57,-1]],"tool":"curve"}\n'
-    "  - 'asymptotes': array of x-values for vertical asymptotes (can be empty [])\n"
-    "  - 'points': array of [x,y] coordinate pairs to plot on the graph\n"
-    "  - 'tool': one of 'curve','line','ray','segment','point'\n"
-    "  - Use decimal approximations rounded to 2 decimal places\n"
-    "  - For trig functions like sec/csc/tan, include 3 consecutive asymptotes and 2 key points\n"
+    "- For number-line / inequality problems (\"graph the inequality on the number "
+    "line\"), return a JSON object with this EXACT format:\n"
+    '  {"type":"numberline","points":[{"x":-1,"open":true},{"x":7,"open":true}],'
+    '"segments":[{"from":-1,"to":7}]}\n'
+    '  Use "open":true for strict (< or >) and "open":false for inclusive (≤ or ≥). '
+    'For rays to infinity use "from":3,"to":"+inf" or "from":"-inf","to":-2. '
+    'For "x ≥ a AND x ≤ b" create a single segment from a to b. '
+    'For "x < a OR x > b" create two separate rays.\n'
+    '- If the problem ALSO asks for interval notation (e.g. "Graph the set '
+    '{x | -5 ≤ x ≤ -2} on the number line. Then, write the set using interval '
+    'notation."), include an "interval" field in the same JSON. Format: '
+    '{"type":"numberline","points":[...],"segments":[...],'
+    '"interval":"[-5,-2]"}. Use "[" or "]" for inclusive, "(" or ")" for '
+    'exclusive, "-inf" / "+inf" for rays, "empty" for the empty set. '
+    'Use "U" between disjoint pieces, e.g. "(-inf,-3)U(2,+inf)".\n'
     "No explanations, no steps, no words. ONLY the answer."
 )
 
-# ─── ALEKS Activities (by Semester) ─────────────────────────────
-# Each semester maps activity numbers → activity names.
-# Edit these to match your actual ALEKS course topics.
 
-SEMESTER_1_ACTIVITIES = {
-    1:  "Activity 1 - Whole numbers and integers",
-    2:  "Activity 2 - Fractions and mixed numbers",
-    3:  "Activity 3 - Decimals and percents",
-    4:  "Activity 4 - Ratios and proportions",
-    5:  "Activity 5 - Introduction to variables and expressions",
-    6:  "Activity 6 - Solving one-step equations",
-    7:  "Activity 7 - Solving two-step equations",
-    8:  "Activity 8 - Inequalities on the number line",
-    9:  "Activity 9 - Introduction to geometry (angles and lines)",
-    10: "Activity 10 - Perimeter, area and volume",
-    11: "Activity 11 - Mean, median and mode",
-    12: "Activity 12 - Introduction to probability",
-    13: "Activity 13 - Reading graphs and tables",
-    14: "Activity 14 - Unit conversions",
-    15: "Activity 15 - Word problems with whole numbers",
-}
-
-SEMESTER_2_ACTIVITIES = {
-    1:  "Activity 1 - Real numbers and the number line",
-    2:  "Activity 2 - Order of operations",
-    3:  "Activity 3 - Evaluating algebraic expressions",
-    4:  "Activity 4 - Simplifying algebraic expressions",
-    5:  "Activity 5 - Solving linear equations",
-    6:  "Activity 6 - Graphing linear equations",
-    7:  "Activity 7 - Systems of linear equations",
-    8:  "Activity 8 - Polynomials and factoring",
-    9:  "Activity 9 - Quadratic equations",
-    10: "Activity 10 - Rational expressions",
-    11: "Activity 11 - Radical expressions and equations",
-    12: "Activity 12 - Functions and function notation",
-    13: "Activity 13 - Exponential and logarithmic functions",
-    14: "Activity 14 - Compound and simple interest",
-    15: "Activity 15 - Linear inequalities and systems",
-    16: "Activity 16 - Introduction to statistics",
-    17: "Activity 17 - Scatter plots and correlation",
-    18: "Activity 18 - Probability and counting",
-}
-
-SEMESTER_3_ACTIVITIES = {
-    1:  "Activity 1 - Sine, cosine and tangent functions",
-    2:  "Activity 2 - Secant, cosecant and cotangent functions",
-    3:  "Activity 3 - Trigonometric identities",
-    4:  "Activity 4 - Graphs of trigonometric functions",
-    5:  "Activity 5 - Inverse trigonometric functions",
-    6:  "Activity 6 - Law of sines and cosines",
-    7:  "Activity 7 - Polar coordinates and complex numbers",
-    8:  "Activity 8 - Vectors in two dimensions",
-    9:  "Activity 9 - Conic sections",
-    10: "Activity 10 - Sequences and series",
-    11: "Activity 11 - Limits and continuity",
-    12: "Activity 12 - Derivatives and differentiation",
-    13: "Activity 13 - Applications of derivatives",
-    14: "Activity 14 - Integration and antiderivatives",
-    15: "Activity 15 - Applications of integrals",
-    16: "Activity 16 - Differential equations (intro)",
-    17: "Activity 17 - Parametric equations",
-    18: "Activity 18 - Matrices and determinants",
-    19: "Activity 19 - Binomial theorem",
-    20: "Activity 20 - Mathematical induction and proofs",
-}
-
-SEMESTER_4_ACTIVITIES = {
-    1:  "Activity 1 - Multivariable functions",
-    2:  "Activity 2 - Partial derivatives",
-    3:  "Activity 3 - Gradient and directional derivatives",
-    4:  "Activity 4 - Multiple integrals",
-    5:  "Activity 5 - Vector calculus",
-    6:  "Activity 6 - Line and surface integrals",
-    7:  "Activity 7 - Green's, Stokes' and divergence theorems",
-    8:  "Activity 8 - First-order differential equations",
-    9:  "Activity 9 - Second-order differential equations",
-    10: "Activity 10 - Laplace transforms",
-    11: "Activity 11 - Systems of differential equations",
-    12: "Activity 12 - Power series solutions",
-    13: "Activity 13 - Vector spaces and subspaces",
-    14: "Activity 14 - Linear transformations",
-    15: "Activity 15 - Eigenvalues and eigenvectors",
-    16: "Activity 16 - Orthogonality and least squares",
-    17: "Activity 17 - Matrix decompositions (LU, QR, SVD)",
-    18: "Activity 18 - Complex analysis (intro)",
-    19: "Activity 19 - Fourier series",
-    20: "Activity 20 - Numerical methods",
-}
-
-# Semester selector — maps semester number → (label, activities dict)
-SEMESTERS = {
-    1: ("1st Semester — Foundations", SEMESTER_1_ACTIVITIES),
-    2: ("2nd Semester — Intermediate Algebra", SEMESTER_2_ACTIVITIES),
-    3: ("3rd Semester — Precalculus & Calculus", SEMESTER_3_ACTIVITIES),
-    4: ("4th Semester — Advanced Calculus & Linear Algebra", SEMESTER_4_ACTIVITIES),
-}
-
-# Default semester (overridden at runtime by user selection in main.py)
-SEMESTER = 1
-ACTIVITIES = SEMESTERS[SEMESTER][1]
-
-
-# ─── Browser Settings ───────────────────────────────────────────
-HEADLESS = False          # Set True to run without visible browser
-SLOW_MO = 800             # Milliseconds between actions (looks more human)
-TIMEOUT = 30000           # Max wait for elements (ms)
+# ─── Browser behavior ───────────────────────────────────────────
+HEADLESS            = False
+SLOW_MO             = 250      # ms between actions
+TIMEOUT             = 30_000   # default element wait (ms)
 SCREENSHOT_ON_ERROR = True
+
+
+# ─── Solver behavior ────────────────────────────────────────────
+MAX_QUESTIONS_PER_SESSION = 100   # safety cap
+MAX_WRONG_ATTEMPTS        = 2     # tries per problem before clicking "Try Again"
+WAIT_AFTER_CHECK_SECONDS  = 1.5   # wait after clicking Check for grading
+WAIT_AFTER_NEXT_SECONDS   = 2.0   # wait after advancing to next problem

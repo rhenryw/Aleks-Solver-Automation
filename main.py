@@ -1,284 +1,389 @@
 """
-main.py — ALEKS AutoSolver
-Human-free automation: login → navigate → solve → report.
+main.py — ALEKS AutoSolver.
+
+Flow (matches real ALEKS behavior as captured by record_session.py):
+
+  1. Login       : paste a Canvas/LMS SSO URL (or use saved session)
+  2. Start       : click the 'Start Learning' button on the dashboard
+  3. Loop        : read question → ask the AI → type answer → Check
+                   → Continue / New Item depending on correctness
+  4. Stop when   : no more questions, safety cap hit, or Ctrl+C
 
 Usage:
-    python main.py
-
-You will be prompted for:
-    1. Username / password (one time, never saved to disk)
-    2. Which activities to solve (comma-separated numbers)
-
-Then it runs autonomously until all activities are complete.
+    python3 main.py                     # interactive: asks for SSO URL
+    python3 main.py --sso "https://..." # non-interactive
+    python3 main.py --max 50            # cap at 50 questions
+    python3 main.py --dry-run           # read-only: don't submit answers
 """
 
-import getpass
+from __future__ import annotations
+
+import argparse
+import json
 import logging
 import sys
 import time
 from datetime import datetime
+from pathlib import Path
 
 import config
-from solver import Solver
 from browser import AleksBrowser, AutomationError
+from solver import Solver
 
 
-# ─── Console Logger ─────────────────────────────────────────────
+# ─── Pretty console logger ──────────────────────────────────────
 
 class ConsoleFormatter(logging.Formatter):
     COLORS = {
-        "DEBUG":    "\033[90m",     # gray
-        "INFO":     "\033[97m",     # white
-        "WARNING":  "\033[93m",     # yellow
-        "ERROR":    "\033[91m",     # red
-        "CRITICAL": "\033[91;1m",   # bold red
+        "DEBUG":    "\033[90m",
+        "INFO":     "\033[97m",
+        "WARNING":  "\033[93m",
+        "ERROR":    "\033[91m",
+        "CRITICAL": "\033[91;1m",
     }
-    RESET = "\033[0m"
-    BOLD = "\033[1m"
-    DIM = "\033[2m"
+    RESET, DIM = "\033[0m", "\033[2m"
 
     def format(self, record):
         color = self.COLORS.get(record.levelname, "")
-        timestamp = datetime.now().strftime("%H:%M:%S")
-        return (
-            f"{self.DIM}[{timestamp}]{self.RESET} "
-            f"{color}{record.getMessage()}{self.RESET}"
-        )
+        ts    = datetime.now().strftime("%H:%M:%S")
+        return f"{self.DIM}[{ts}]{self.RESET} {color}{record.getMessage()}{self.RESET}"
 
 
 def setup_logging():
-    handler = logging.StreamHandler(sys.stdout)
-    handler.setFormatter(ConsoleFormatter())
-    logging.basicConfig(level=logging.INFO, handlers=[handler])
+    h = logging.StreamHandler(sys.stdout)
+    h.setFormatter(ConsoleFormatter())
+    logging.basicConfig(level=logging.INFO, handlers=[h])
 
 
-# ─── Semester Selection ─────────────────────────────────────────
+# ─── CLI ────────────────────────────────────────────────────────
 
-def select_semester() -> int:
-    """Display semester menu and return the chosen semester number."""
-    print("\n\033[1m╔══════════════════════════════════════════════╗\033[0m")
-    print("\033[1m║          SELECT SEMESTER                     ║\033[0m")
-    print("\033[1m╚══════════════════════════════════════════════╝\033[0m\n")
-
-    for num, (label, activities) in sorted(config.SEMESTERS.items()):
-        count = len(activities)
-        print(f"  \033[96m{num}\033[0m │ {label}  \033[90m({count} activities)\033[0m")
-
-    print()
-    raw = input("\033[1mSemester number (1/2/3/4): \033[0m").strip()
-
-    if not raw.isdigit() or int(raw) not in config.SEMESTERS:
-        print("\033[91mInvalid semester. Exiting.\033[0m")
-        sys.exit(1)
-
-    chosen = int(raw)
-
-    # Update the global ACTIVITIES to the chosen semester
-    config.SEMESTER = chosen
-    config.ACTIVITIES = config.SEMESTERS[chosen][1]
-
-    semester_label = config.SEMESTERS[chosen][0]
-    print(f"\n  \033[92m✓ {semester_label}\033[0m\n")
-    return chosen
+def parse_args() -> argparse.Namespace:
+    p = argparse.ArgumentParser(
+        description="Automate ALEKS problem solving via an OpenAI-compatible LLM.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=__doc__,
+    )
+    p.add_argument("--sso",     metavar="URL",
+                   help="Canvas/LMS SSO link into ALEKS. If omitted, you'll be prompted.")
+    p.add_argument("--max",     type=int, default=config.MAX_QUESTIONS_PER_SESSION,
+                   metavar="N", help="Max questions to solve in this session.")
+    p.add_argument("--dry-run", action="store_true",
+                   help="Read questions and get answers but don't submit.")
+    p.add_argument("--skip-wrong", action="store_true",
+                   help="Immediately request a new item when an answer is wrong.")
+    p.add_argument("--class", dest="class_name", metavar="TEXT",
+                   help="Substring to match when multiple classes are listed on 'My Classes' "
+                        "(e.g. 'MAT 170'). Defaults to the first class.")
+    return p.parse_args()
 
 
-# ─── Activity Selection ─────────────────────────────────────────
+# ─── Main loop ──────────────────────────────────────────────────
 
-def select_activities() -> list[int]:
-    """Display activity menu and get user selection."""
-    print("\033[1m╔══════════════════════════════════════════════╗\033[0m")
-    print("\033[1m║          ALEKS ACTIVITIES                    ║\033[0m")
-    print("\033[1m╚══════════════════════════════════════════════╝\033[0m\n")
-
-    for num, name in sorted(config.ACTIVITIES.items()):
-        print(f"  \033[96m{num:>2}\033[0m │ {name}")
-
-    print()
-    raw = input("\033[1mSelect activities (comma-separated, e.g. 1,2,3): \033[0m").strip()
-
-    selected = []
-    for part in raw.split(","):
-        part = part.strip()
-        if part.isdigit() and int(part) in config.ACTIVITIES:
-            selected.append(int(part))
-        elif part:
-            print(f"  \033[93mSkipping unknown activity: {part}\033[0m")
-
-    if not selected:
-        print("\033[91mNo valid activities selected. Exiting.\033[0m")
-        sys.exit(1)
-
-    return selected
-
-
-# ─── Main Pipeline ──────────────────────────────────────────────
-
-def main():
+def main() -> int:
     setup_logging()
     log = logging.getLogger("main")
+    args = parse_args()
 
-    print("\n\033[1;96m" + "=" * 50)
-    print("   ALEKS AutoSolver — Human-Free Mode")
-    print("=" * 50 + "\033[0m\n")
+    print("\n\033[1;96m" + "=" * 54)
+    print("   ALEKS AutoSolver")
+    print("=" * 54 + "\033[0m\n")
 
-    # Step 1: Credentials (never saved to disk)
-    username = input("\033[1mALEKS Username: \033[0m").strip()
-    password = getpass.getpass("\033[1mALEKS Password: \033[0m")
+    # 1. SSO URL
+    sso_url = args.sso or input("\033[1mPaste ALEKS SSO URL (from Canvas): \033[0m").strip()
+    if not sso_url.startswith("http"):
+        print("\033[91mThat doesn't look like a valid URL.\033[0m")
+        return 1
 
-    if not username or not password:
-        print("\033[91mUsername and password are required.\033[0m")
-        sys.exit(1)
-
-    # Step 2: Select semester
-    select_semester()
-
-    # Step 3: Select activities
-    activities = select_activities()
-    log.info(f"Selected {len(activities)} activities: {activities}")
-
-    # Step 3: Initialize modules
-    solver = Solver()
+    # 2. Init
+    solver  = Solver()
     browser = AleksBrowser()
-
-    # Track results
-    all_results = []
-    start_time = time.time()
+    results = []
+    t0      = time.time()
 
     try:
-        # Step 4: Launch browser and login
         browser.launch()
-        log.info("=" * 40)
-        log.info("PHASE 1: Authentication")
-        log.info("=" * 40)
-        browser.login(username, password)
 
-        # Clear password from memory
-        password = "x" * len(password)
-        del password
+        log.info("=" * 42)
+        log.info("Phase 1: SSO Login")
+        log.info("=" * 42)
+        browser.login_sso(sso_url)
 
-        # Step 5: Process each activity
-        for activity_id in activities:
-            activity_name = config.ACTIVITIES[activity_id]
+        log.info("=" * 42)
+        log.info("Phase 2: Open class & Start Learning")
+        log.info("=" * 42)
+        browser.start_learning(class_name_substring=args.class_name)
+
+        log.info("=" * 42)
+        log.info("Phase 3: Solving")
+        log.info("=" * 42)
+        consecutive_empty = 0
+        last_question = ""
+        stuck_count   = 0
+        empty_count   = 0
+
+        for n in range(1, args.max + 1):
+            if not browser.has_question():
+                # ALEKS shows a "mastery checkpoint" between problem clusters:
+                # Continue My Path → Start → next problem. Try to advance
+                # through it before giving up. Also retry Start Learning —
+                # sometimes the first click hits a loading overlay.
+                if (browser.advance_past_checkpoint()
+                        or browser._click_first_visible(
+                            config.SELECTORS["start_learning"], "Start Learning")):
+                    log.info("  Advanced past checkpoint screen.")
+                    time.sleep(config.WAIT_AFTER_NEXT_SECONDS)
+                    continue
+                consecutive_empty += 1
+                try:
+                    url_now = browser.page.url
+                except Exception:
+                    url_now = "?"
+                log.info(f"  No question visible (attempt {consecutive_empty}/5) — url={url_now[:90]}")
+                if consecutive_empty >= 5:
+                    browser.screenshot(f"no_question_final")
+                    log.info("  No more questions — stopping.")
+                    break
+                time.sleep(3)
+                continue
+            consecutive_empty = 0
+
             log.info("")
-            log.info("=" * 40)
-            log.info(f"PHASE 2: {activity_name}")
-            log.info("=" * 40)
+            log.info(f"── Question {n} ──")
+            q = browser.read_question()
+            if not q:
+                empty_count += 1
+                log.warning(f"  Empty question text ({empty_count}/5) — probing advance.")
+                if empty_count == 1:
+                    browser.screenshot("empty_question")
+                # Try every button that could move us forward.
+                moved = (browser.recover_from_explanation()
+                         or browser.click_try_again()
+                         or browser.advance_past_checkpoint()
+                         or browser.skip_to_new_item())
+                if empty_count >= 5:
+                    log.warning("  Too many empty questions — stopping.")
+                    browser.screenshot("empty_question_giveup")
+                    break
+                time.sleep(config.WAIT_AFTER_NEXT_SECONDS if moved else 2.0)
+                continue
+            empty_count = 0
 
-            try:
-                browser.navigate_to_activity(activity_id)
-            except AutomationError as e:
-                log.error(f"Could not navigate to activity {activity_id}: {e}")
+            preview = q[:140].replace("\n", " ")
+            log.info(f"  Q: {preview}")
+
+            # Detect stuck-on-same-question loop (e.g. Check button gone,
+            # or input widget swapped out mid-submit). After 3 repeats force
+            # an advance via every known button.
+            if q == last_question:
+                stuck_count += 1
+                if stuck_count >= 3:
+                    log.warning(f"  Stuck on same question {stuck_count}× — forcing advance.")
+                    solver.invalidate(q)
+                    if not (browser.recover_from_explanation()
+                            or browser.click_try_again()
+                            or browser.skip_to_new_item()
+                            or browser.advance_past_checkpoint()):
+                        log.warning("  No advance button worked — waiting.")
+                        browser.screenshot("stuck_hard")
+                        time.sleep(config.WAIT_AFTER_NEXT_SECONDS)
+                    stuck_count = 0
+                    last_question = ""
+                    continue
+            else:
+                stuck_count   = 0
+                last_question = q
+
+            if args.dry_run:
+                answer = solver.solve(q)
+                log.info(f"  A (dry-run): {answer[:80]}")
+                results.append({"n": n, "q": q[:200], "a": answer, "result": "dry-run"})
                 continue
 
-            # Solve loop for this activity
-            question_num = 0
-            max_questions = 50  # Safety limit per activity
+            # ── attempt loop (retry wrong answers up to MAX_WRONG_ATTEMPTS) ──
+            final_result = "unknown"
+            final_answer = ""
+            wrong_hints: list[str] = []
+            notice_hints: list[str] = []
 
-            while question_num < max_questions:
-                question_num += 1
+            for attempt in range(1, config.MAX_WRONG_ATTEMPTS + 1):
+                # Capture any leftover popup notice before asking the model
+                # again (e.g. "Write your answer as a single fraction.").
+                pending_notice = browser.dismiss_notice()
+                if pending_notice:
+                    notice_hints.append(pending_notice)
 
-                # Check if there's a question
-                if not browser.has_question():
-                    log.info(f"No more questions in {activity_name}")
+                hint_parts: list[str] = []
+                if wrong_hints:
+                    hint_parts.append(
+                        "Your previous answer(s) were WRONG: "
+                        + "; ".join(wrong_hints)
+                        + ". Try a different approach."
+                    )
+                if notice_hints:
+                    hint_parts.append(
+                        "ALEKS instruction(s) from popup notice(s): "
+                        + " | ".join(notice_hints)
+                        + ". You MUST obey these constraints exactly."
+                    )
+                hint = "\n".join(hint_parts)
+
+                answer = solver.solve(q, context=hint)
+                final_answer = answer
+                log.info(f"  A (try {attempt}): {answer[:80]}")
+
+                if not browser.input_answer(answer):
+                    log.warning("  No answer widget reachable — skipping Check.")
+                    final_result = "unknown"
+                    time.sleep(config.WAIT_AFTER_CHECK_SECONDS)
+                    break
+                if not browser.check_answer():
+                    log.warning("  Could not click Check — advancing.")
                     break
 
-                # Read question
-                log.info(f"── Question {question_num} ──")
-                question_text = browser.read_question()
-
-                if not question_text:
-                    log.warning("Empty question, skipping...")
-                    browser.click_next()
+                # ALEKS sometimes pops an informational dialog ("Be Careful:
+                # Fill in all the empty boxes.") — check_answer dismisses it
+                # and stashes the message. Treat it as a hint for the retry.
+                if browser.last_notice:
+                    notice_hints.append(browser.last_notice)
+                    solver.invalidate(q)
+                    log.info("  Re-submitting after notice.")
                     continue
 
-                # Show truncated question in console
-                preview = question_text[:100].replace("\n", " ")
-                log.info(f"  Q: {preview}...")
+                final_result = browser.check_result()
+                icon  = {"correct": "✓", "incorrect": "✗", "try_again": "↻"}.get(final_result, "?")
+                color = {"correct": "\033[92m", "incorrect": "\033[91m",
+                         "try_again": "\033[91m"}.get(final_result, "\033[93m")
+                log.info(f"  Result: {color}{icon} {final_result}\033[0m")
 
-                # Solve
-                topic = activity_name.split(" - ")[1] if " - " in activity_name else ""
-                answer = solver.solve(question_text, context=topic)
-                log.info(f"  A: {answer}")
+                if final_result == "correct":
+                    break
+                if final_result == "try_again":
+                    # This is still the same problem; feed the wrong answer
+                    # back as context and retry once more instead of moving on.
+                    wrong_hints.append(answer)
+                    solver.invalidate(q)
+                    if args.skip_wrong:
+                        log.info("  --skip-wrong set — not retrying this problem.")
+                        break
+                    if attempt >= config.MAX_WRONG_ATTEMPTS:
+                        log.info(f"  {config.MAX_WRONG_ATTEMPTS} wrong attempts — giving up.")
+                        break
+                    log.info("  ALEKS says 'Try Again' — retrying same question.")
+                    browser.click_try_again()
+                    time.sleep(config.WAIT_AFTER_NEXT_SECONDS)
+                    continue
+                if final_result == "incorrect":
+                    wrong_hints.append(answer)
+                    solver.invalidate(q)
+                    if args.skip_wrong:
+                        log.info("  --skip-wrong set — not retrying this problem.")
+                        break
+                    if attempt >= config.MAX_WRONG_ATTEMPTS:
+                        log.info(f"  {config.MAX_WRONG_ATTEMPTS} wrong attempts — giving up.")
+                    continue
+                # unknown — small wait, then re-probe next loop iteration
+                time.sleep(config.WAIT_AFTER_CHECK_SECONDS)
+                break
 
-                # Input answer
-                browser.input_answer(answer)
+            results.append({
+                "n": n, "q": q[:200], "a": final_answer,
+                "result": final_result,
+                "ts": datetime.now().isoformat(),
+            })
 
-                # Submit
-                browser.submit()
+            # Cache answers ONLY when ALEKS explicitly marks them correct.
+            if final_result == "correct":
+                solver.mark_correct(q, final_answer)
 
-                # Check result
-                result = browser.check_result()
-                status_icon = {"correct": "✅", "incorrect": "❌"}.get(result, "❓")
-                log.info(f"  Result: {status_icon} {result}")
-
-                # Record
-                all_results.append({
-                    "activity": activity_name,
-                    "question_num": question_num,
-                    "question": question_text[:200],
-                    "answer": answer,
-                    "result": result,
-                    "timestamp": datetime.now().isoformat(),
-                })
-
-                # Move to next question
-                if result != "unknown":
-                    browser.click_next()
-                    time.sleep(1)
+            # ── advance to the next problem ──
+            if final_result == "correct":
+                browser.continue_after_correct()
+            elif final_result == "try_again":
+                browser.click_try_again()
+            elif final_result == "incorrect":
+                # ALEKS is showing the "Let's Take a Break / CORRECT ANSWER /
+                # EXPLANATION" screen. The advancement button is below the
+                # fold — scroll and try every known button.
+                if not browser.recover_from_explanation():
+                    log.warning("  Could not advance past explanation screen — waiting.")
+                    browser.screenshot("stuck_on_explanation")
+                    time.sleep(config.WAIT_AFTER_NEXT_SECONDS)
+            else:
+                # 'unknown' — ALEKS didn't show a clear correct/incorrect
+                # indicator. Could be a transient DOM state, a dismissed
+                # popup, or the widget was replaced. Try every advance
+                # button so we don't loop on the same problem forever.
+                log.info("  Unknown result — probing advance buttons.")
+                (browser.recover_from_explanation()
+                 or browser.click_try_again()
+                 or browser.advance_past_checkpoint()
+                 or browser.skip_to_new_item())
+                time.sleep(config.WAIT_AFTER_CHECK_SECONDS)
 
     except KeyboardInterrupt:
         log.warning("\nStopped by user (Ctrl+C)")
     except AutomationError as e:
         log.error(f"Automation error: {e}")
-        browser.screenshot("fatal_error")
+        browser.screenshot("automation_error")
     except Exception as e:
-        log.error(f"Unexpected error: {e}")
+        log.exception(f"Unexpected error: {e}")
         browser.screenshot("crash")
     finally:
         browser.close()
 
-    # ─── Final Report ───────────────────────────────────────────
-    elapsed = time.time() - start_time
-    stats = solver.stats
+    _print_report(results, solver, time.time() - t0)
+    _save_results(results)
+    return 0
 
-    print("\n")
-    print("\033[1;96m" + "=" * 50)
+
+# ─── Reporting ──────────────────────────────────────────────────
+
+def _print_report(results: list[dict], solver: Solver, elapsed: float):
+    print("\n\033[1;96m" + "=" * 54)
     print("   SESSION REPORT")
-    print("=" * 50 + "\033[0m\n")
+    print("=" * 54 + "\033[0m\n")
 
-    total = len(all_results)
-    correct = sum(1 for r in all_results if r["result"] == "correct")
-    incorrect = sum(1 for r in all_results if r["result"] == "incorrect")
-    unknown = total - correct - incorrect
+    n         = len(results)
+    correct   = sum(1 for r in results if r["result"] == "correct")
+    incorrect = sum(1 for r in results if r["result"] == "incorrect")
+    try_again = sum(1 for r in results if r["result"] == "try_again")
+    dry_run   = sum(1 for r in results if r["result"] == "dry-run")
+    unknown   = n - correct - incorrect - try_again - dry_run
+    stats     = solver.stats
 
-    print(f"  \033[1mQuestions solved:\033[0m  {total}")
-    print(f"  \033[92m✅ Correct:\033[0m         {correct}")
-    print(f"  \033[91m❌ Incorrect:\033[0m       {incorrect}")
-    print(f"  \033[93m❓ Unknown:\033[0m         {unknown}")
-    if total > 0:
-        print(f"  \033[1mSuccess rate:\033[0m      {correct / total * 100:.1f}%")
+    print(f"  \033[1mQuestions:\033[0m       {n}")
+    print(f"  \033[92m✓ Correct:\033[0m       {correct}")
+    print(f"  \033[91m✗ Incorrect:\033[0m     {incorrect}")
+    print(f"  \033[91m↻ Try again:\033[0m     {try_again}")
+    print(f"  \033[93m? Unknown:\033[0m       {unknown}")
+    if n:
+        print(f"  \033[1mSuccess rate:\033[0m    {correct / n * 100:.1f}%")
     print()
-    print(f"  \033[1mAPI calls:\033[0m         {stats['api_calls']}")
-    print(f"  \033[1mCache hits:\033[0m        {stats['cache_hits']}")
-    print(f"  \033[1mTokens used:\033[0m       {stats['total_tokens']:,}")
-    print(f"  \033[1mCached answers:\033[0m    {stats['cached_answers']}")
-    print(f"  \033[1mTime elapsed:\033[0m      {elapsed:.0f}s ({elapsed / 60:.1f}min)")
+    print(f"  \033[1mAPI calls:\033[0m       {stats['api_calls']}")
+    print(f"  \033[1mCache hits:\033[0m      {stats['cache_hits']}")
+    print(f"  \033[1mTokens used:\033[0m     {stats['total_tokens']:,}")
+    print(f"  \033[1mCached answers:\033[0m  {stats['cached_answers']}")
+    print(f"  \033[1mElapsed:\033[0m         {elapsed:.0f}s ({elapsed / 60:.1f}min)")
     print()
 
-    # Per-activity breakdown
-    activities_seen = set(r["activity"] for r in all_results)
-    if len(activities_seen) > 1:
-        print("  \033[1mPer Activity:\033[0m")
-        for act in activities_seen:
-            act_results = [r for r in all_results if r["activity"] == act]
-            act_correct = sum(1 for r in act_results if r["result"] == "correct")
-            short_name = act.split(" - ")[1] if " - " in act else act
-            print(f"    {short_name}: {act_correct}/{len(act_results)} correct")
-        print()
 
-    print("\033[2mResults cached in answer_cache.json for future runs\033[0m")
-    print("\033[2mScreenshots saved in screenshots/ on errors\033[0m\n")
+def _save_results(results: list[dict]):
+    if not results:
+        return
+    out = Path("session_results.json")
+    existing = []
+    if out.exists():
+        try:
+            existing = json.loads(out.read_text())
+        except Exception:
+            pass
+    existing.append({
+        "finished_at": datetime.now().isoformat(),
+        "results": results,
+    })
+    out.write_text(json.dumps(existing, indent=2))
+    print(f"\033[2mResults appended to {out}\033[0m\n")
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
