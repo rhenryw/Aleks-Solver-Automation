@@ -454,7 +454,7 @@ class Solver:
                 log.debug(f"  Equiv fracs parse failed: {e}")
 
         # Pattern: "Solve for v ... <equation>" (real-domain solutions).
-        m_var = re.search(r"(?i)\bsolve\s+for\s+([a-z])\b", q)
+        m_var = re.search(r"(?i)\bsolve\s+for\s+([A-Za-z][A-Za-z0-9_]*)\b", q)
         if m_var:
             var_name = m_var.group(1)
             eq_text = q
@@ -463,7 +463,7 @@ class Solver:
             eq_text = re.split(r"(?i)\bif\s+there\s+is\b|\bsimplify\b", eq_text)[0]
 
             # Remove common prose wrappers.
-            eq_text = re.sub(rf"(?i)\bsolve\s+for\s+{var_name}\b", " ", eq_text)
+            eq_text = re.sub(rf"(?i)\bsolve\s+for\s+{re.escape(var_name)}\b", " ", eq_text)
             eq_text = re.sub(r"(?i)\bwhere\b[^=]*", " ", eq_text)
 
             # Normalize math text for parser.
@@ -502,7 +502,15 @@ class Solver:
                     try:
                         sym = sp.Symbol(var_name, real=True)
                         transformations = standard_transformations + (implicit_multiplication_application,)
-                        local_dict = {var_name: sym, "Abs": sp.Abs, "sqrt": sp.sqrt}
+                        local_dict = {"Abs": sp.Abs, "sqrt": sp.sqrt}
+                        # Ensure identifier-like tokens (x1, x_2, AB, etc.) are
+                        # treated as symbols, not implicit multiplication.
+                        tokens = set(re.findall(r"[A-Za-z][A-Za-z0-9_]*", f"{left} {right}"))
+                        for tkn in tokens:
+                            if tkn in {"Abs", "sqrt", "root"}:
+                                continue
+                            local_dict[tkn] = sp.Symbol(tkn, real=True)
+                        local_dict[var_name] = sym
                         lhs = parse_expr(left, transformations=transformations, local_dict=local_dict, evaluate=True)
                         rhs = parse_expr(right, transformations=transformations, local_dict=local_dict, evaluate=True)
                         sol = sp.solveset(sp.Eq(lhs, rhs), sym, domain=sp.S.Reals)
@@ -526,7 +534,8 @@ class Solver:
                             vals = sorted(list(finite), key=sp.default_sort_key)
                             out_vals = []
                             for v in vals:
-                                s = sp.sstr(sp.simplify(v)).replace("**", "^")
+                                vv = sp.together(sp.simplify(v))
+                                s = sp.sstr(vv).replace("**", "^")
                                 s = re.sub(r"\s+", "", s)
                                 out_vals.append(s)
                             if out_vals:

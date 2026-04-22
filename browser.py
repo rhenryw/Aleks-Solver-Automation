@@ -365,12 +365,18 @@ class AleksBrowser:
         return None, None
 
     def _figed_root(self):
-        """Return (frame, figed_root_element) if a number-line editor is visible."""
+        """Return (frame, figed element) if a number-line editor is visible."""
         for frame in [self.page, *self.page.frames]:
             try:
+                # Primary: container root
                 el = frame.query_selector(config.SELECTORS["figed_root"])
                 if el and _is_visible(el):
                     return frame, el
+                # Fallback: some ALEKS layouts expose only the event surface
+                # (e.g. id="figed_events_#Figed__worksheet_...").
+                surf = frame.query_selector(config.SELECTORS["figed_surface"])
+                if surf and _is_visible(surf):
+                    return frame, surf
             except Exception:
                 continue
         return None, None
@@ -639,6 +645,15 @@ class AleksBrowser:
         _, figed = self._figed_root()
         if figed is not None:
             interval_text = _extract_interval_from_answer(answer)
+            if not interval_text:
+                # If the model returned malformed interval text (e.g. "-3,1"),
+                # derive the interval from the question's set-builder form.
+                try:
+                    qtxt = self.read_question()
+                except Exception:
+                    qtxt = ""
+                if qtxt:
+                    interval_text = _extract_interval_from_answer(qtxt)
             spec = _interval_to_numberline_spec(interval_text) if interval_text else None
             if spec is not None:
                 log.info(f"  Numberline fallback from interval: {interval_text}")
@@ -1450,48 +1465,115 @@ class AleksBrowser:
         ``(root_handle, surface_handle, bbox_dict, xmin, xmax)``.
         """
         import re as _re
-        for frame in [self.page, *self.page.frames]:
-            try:
-                root = frame.query_selector(config.SELECTORS["figed_root"])
-                if not root or not _is_visible(root):
-                    continue
-            except Exception:
-                continue
+        deadline = time.time() + 3.0
 
-            # Parse "x-values range from - 10 to 10" from the aria label
-            xmin, xmax = -10.0, 10.0
+        def _bbox(el):
+            if not el:
+                return None
             try:
-                label = frame.query_selector(config.SELECTORS["figed_label"])
-                if label:
-                    txt = (label.inner_text() or "").replace("−", "-").replace("–", "-")
-                    m = _re.search(r"from\s*(-?\d+(?:\.\d+)?)\s*to\s*(-?\d+(?:\.\d+)?)", txt)
-                    if m:
-                        xmin, xmax = float(m.group(1)), float(m.group(2))
+                return el.bounding_box()
             except Exception:
-                pass
+                return None
 
-            # Allow the LLM to override if it included a range
-            if "xmin" in spec and "xmax" in spec:
+        saw_root = False
+        saw_surface = False
+
+        while time.time() < deadline:
+            for frame in [self.page, *self.page.frames]:
                 try:
-                    xmin, xmax = float(spec["xmin"]), float(spec["xmax"])
+                    root = frame.query_selector(config.SELECTORS["figed_root"])
+                except Exception:
+                    root = None
+
+                surface = None
+                try:
+                    surface = frame.query_selector(config.SELECTORS["figed_surface"])
+                except Exception:
+                    surface = None
+
+                # Extra fallbacks for layouts where figed surface/root IDs
+                # vary by template.
+                if not surface:
+                    for alt in (
+                        "div[id*='figed_events_']",
+                        "svg[id*='figed_grid_graphics_']",
+                        "svg[id*='figed_objects_graphics_']",
+                    ):
+                        try:
+                            surface = frame.query_selector(alt)
+                        except Exception:
+                            surface = None
+                        if surface:
+                            break
+                if not root:
+                    for alt_root in (
+                        ".figed_root",
+                        "[id^='daddy_Figed_']",
+                    ):
+                        try:
+                            root = frame.query_selector(alt_root)
+                        except Exception:
+                            root = None
+                        if root:
+                            break
+
+                saw_root = saw_root or bool(root)
+                saw_surface = saw_surface or bool(surface)
+
+                root_bbox = _bbox(root)
+                surf_bbox = _bbox(surface)
+                root_ok = bool(root and (_is_visible(root) or root_bbox))
+                surf_ok = bool(surface and (_is_visible(surface) or surf_bbox))
+
+                # Final fallback: if figure toolbar buttons exist, this is a
+                # valid number-line editor even if surface visibility is flaky.
+                if not (root_ok or surf_ok):
+                    try:
+                        has_tools = bool(
+                            frame.query_selector(config.SELECTORS["figed_open"])
+                            or frame.query_selector(config.SELECTORS["figed_closed"])
+                            or frame.query_selector(config.SELECTORS["figed_interval"])
+                        )
+                    except Exception:
+                        has_tools = False
+                    if has_tools and root_bbox:
+                        root_ok = True
+
+                if not (root_ok or surf_ok):
+                    continue
+
+                # Parse "x-values range from - 10 to 10" from the aria label.
+                xmin, xmax = -10.0, 10.0
+                try:
+                    label = frame.query_selector(config.SELECTORS["figed_label"])
+                    if label:
+                        txt = (label.inner_text() or "").replace("−", "-").replace("–", "-")
+                        m = _re.search(r"from\s*(-?\d+(?:\.\d+)?)\s*to\s*(-?\d+(?:\.\d+)?)", txt)
+                        if m:
+                            xmin, xmax = float(m.group(1)), float(m.group(2))
                 except Exception:
                     pass
 
-            surface = None
-            try:
-                surface = frame.query_selector(config.SELECTORS["figed_surface"])
-            except Exception:
-                pass
+                # Allow the model to override if it included a range.
+                if "xmin" in spec and "xmax" in spec:
+                    try:
+                        xmin, xmax = float(spec["xmin"]), float(spec["xmax"])
+                    except Exception:
+                        pass
 
-            target = surface if (surface and _is_visible(surface)) else root
-            try:
-                bbox = target.bounding_box()
-            except Exception:
-                bbox = None
-            if not bbox:
-                continue
-            return root, surface, bbox, xmin, xmax
+                target = surface if surf_ok else root
+                bbox = surf_bbox if target is surface else root_bbox
+                if not bbox:
+                    continue
+                return root, surface, bbox, xmin, xmax
 
+            time.sleep(0.1)
+
+        log.warning(
+            "  Number-line detection timed out (saw_root=%s, saw_surface=%s).",
+            saw_root,
+            saw_surface,
+        )
         return None, None, None, -10.0, 10.0
 
     def _click_figed_tool(self, selector_key: str) -> bool:
@@ -1964,21 +2046,27 @@ def _extract_interval_from_answer(answer: str) -> str:
     if not a:
         return ""
 
-    # If the model returned "... = (...)" keep the RHS.
-    if "=" in a and not a.startswith('{"'):
-        a = a.split("=")[-1].strip()
+    # If the model returned assignment-style text like
+    #   "{x|-4<x<5}=(-4,5)"
+    # keep RHS only when it clearly looks like interval notation.
+    if not a.startswith('{"'):
+        m_assign = re.search(r"=(\s*[\[(].+?[\])].*)$", a)
+        if m_assign:
+            a = m_assign.group(1).strip()
 
     # x in (...) variants
     a = re.sub(r"(?i)^\s*[a-zA-Z]\s*(?:in|∈)\s*", "", a).strip()
 
-    # Set-builder with chained inequalities: {x|a<x<b}
-    if a.startswith("{") and "|" in a and a.endswith("}"):
-        inside = a[1:-1]
+    # Set-builder with chained inequalities: {x|a<x<b}. Allow this to be
+    # embedded in prose, e.g. "Graph the set {x|-3<=x<=1} on the number line".
+    m_set = re.search(r"\{[^{}]*\|[^{}]*\}", a)
+    if m_set:
+        inside = m_set.group(0)[1:-1]
         parts = inside.split("|", 1)
         cond = parts[1].strip() if len(parts) == 2 else ""
         # a < x < b / a <= x < b / a < x <= b / a <= x <= b
         m = re.match(
-            r"^(.+?)\s*(<=|<)\s*[a-zA-Z]\s*(<=|<)\s*(.+?)$",
+            r"^(.+?)\s*(<=|<)\s*[A-Za-z][A-Za-z0-9_]*\s*(<=|<)\s*(.+?)$",
             cond,
         )
         if m:
@@ -1986,6 +2074,25 @@ def _extract_interval_from_answer(answer: str) -> str:
             ob = "(" if lop == "<" else "["
             cb = ")" if rop == "<" else "]"
             return f"{ob}{left.strip()},{right.strip()}{cb}"
+
+    # Chained inequality embedded without braces, e.g.
+    # "x such that -3 <= x <= 1".
+    m_chain = re.search(
+        r"(.+?)\s*(<=|<)\s*([A-Za-z][A-Za-z0-9_]*)\s*(<=|<)\s*(.+)",
+        a,
+    )
+    if m_chain:
+        left, lop, _var, rop, right = m_chain.groups()
+        # Trim common prose around the bounds.
+        left = re.sub(r"(?i)^.*?(?:such\s+that|set\s+|for\s+)", "", left).strip()
+        right = re.sub(r"(?i)(?:\s+on\s+the\s+number\s+line.*|\s+then.*)$", "", right).strip()
+        # If the text appends a bad assignment tail (e.g. "= -3,1"),
+        # keep only the bound part before '='.
+        if "=" in right:
+            right = right.split("=", 1)[0].strip()
+        ob = "(" if lop == "<" else "["
+        cb = ")" if rop == "<" else "]"
+        return f"{ob}{left},{right}{cb}"
 
     # Plain interval / union.
     if re.search(r"[\[(].+?,.+?[\])]", a):

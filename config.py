@@ -45,9 +45,9 @@ SELECTORS = {
     # The click surface and its four toolbar buttons (open dot, closed dot,
     # interval, eraser). IDs include a run-specific suffix after "figed_I"
     # so we match the common prefix / suffix instead.
-    "figed_root":        "[id^='figed_I']",
-    "figed_label":       "[id^='label_figed_figed']",
-    "figed_surface":     "[id^='figed_events_']",
+    "figed_root":        "[id^='figed_I'], .figed_root, [id^='daddy_Figed_']",
+    "figed_label":       "[id^='label_figed_']",
+    "figed_surface":     "[id^='figed_events_'], div[id*='figed_events_']",
     "figed_open":        "[id*='_figed_lineopen']",
     "figed_closed":      "[id*='_figed_lineclose']",
     "figed_interval":    "[id*='_figed_lineinterval']",
